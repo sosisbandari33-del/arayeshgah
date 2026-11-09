@@ -1,0 +1,1237 @@
+/* ==========================================================================
+   طراحی اختصاصی و سیستم طراحی (Design System) پیرایش کلاسیک
+   ========================================================================== */
+
+:root {
+  /* پالت رنگی برند */
+  --brand-dark: #0f172a;
+  --brand-navy: #1e293b;
+  --brand-gold: #d97706;
+  --brand-gold-hover: #b45309;
+  --brand-gold-light: #fef3c7;
+  
+  /* رنگ‌های تعاملی و دکمه‌ها */
+  --primary: #2563eb;
+  --primary-hover: #1d4ed8;
+  --primary-light: #eff6ff;
+  --primary-border: #bfdbfe;
+
+  /* وضعیت‌ها */
+  --success: #15803d;
+  --success-bg: #f0fdf4;
+  --success-border: #bbf7d0;
+
+  --danger: #b91c1c;
+  --danger-hover: #991b1b;
+  --danger-bg: #fef2f2;
+  --danger-border: #fecaca;
+
+  --info: #0369a1;
+  --info-bg: #f0f9ff;
+  --info-border: #bae6fd;
+
+  /* پس‌زمینه و المان‌ها */
+  --bg-page: #f8fafc;
+  --bg-card: #ffffff;
+  --text-heading: #0f172a;
+  --text-body: #334155;
+  --text-muted: #64748b;
+  --border-subtle: #e2e8f0;
+  --border-focus: #3b82f6;
+
+  /* اندازه‌ها و گردی لبه‌ها */
+  --radius-card: 16px;
+  --radius-element: 10px;
+  --radius-pill: 9999px;
+
+  /* سایه‌ها */
+  --shadow-card: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.04);
+  --shadow-hover: 0 12px 20px -4px rgba(0, 0, 0, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.03);
+}
+
+/* ظرف اصلی برنامه */
+.app-container {
+  max-width: 1040px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 1.5rem 1rem;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+/* ==========================================================================
+   هدر یکپارچه و ناوبری (Header & Navigation)
+   ========================================================================== */
+.header {
+  background: linear-gradient(135deg, var(--brand-dark) 0%, var(--brand-navy) 100%);
+  color: #ffffff;
+  border-radius: var(--radius-card);
+  padding: 1.75rem 2rem;
+  margin-bottom: 2rem;
+  box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.25);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.header-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1.25rem;
+}
+
+.logo-section {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.logo-badge {
+  font-size: 2.8rem;
+  line-height: 1;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  padding: 0.35rem 0.55rem;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.salon-name {
+  font-size: 2rem;
+  font-weight: 800;
+  color: #ffffff;
+  margin: 0 0 0.3rem 0;
+  letter-spacing: -0.5px;
+}
+
+.salon-tagline {
+  font-size: 0.95rem;
+  color: #cbd5e1;
+  margin: 0;
+  font-weight: 400;
+}
+
+.header-nav {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  flex-wrap: wrap;
+}
+
+/* دکمه‌های ناوبری هدر */
+.btn-header-action {
+  background-color: var(--brand-gold);
+  color: #ffffff;
+  font-weight: 700;
+  padding: 0.65rem 1.25rem;
+  border-radius: var(--radius-pill);
+  border: none;
+  cursor: pointer;
+  font-size: 0.92rem;
+  font-family: inherit;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 10px rgba(217, 119, 6, 0.3);
+}
+
+.btn-header-action:hover {
+  background-color: var(--brand-gold-hover);
+  transform: translateY(-2px);
+}
+
+.btn-header-secondary {
+  background: rgba(255, 255, 255, 0.12);
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  padding: 0.65rem 1.25rem;
+  border-radius: var(--radius-pill);
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.92rem;
+  font-family: inherit;
+  transition: all 0.2s ease;
+}
+
+.btn-header-secondary:hover {
+  background: rgba(255, 255, 255, 0.22);
+}
+
+.btn-header-outline {
+  background: transparent;
+  color: #fde68a;
+  border: 1px solid rgba(253, 230, 138, 0.4);
+  padding: 0.65rem 1.25rem;
+  border-radius: var(--radius-pill);
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.92rem;
+  font-family: inherit;
+  transition: all 0.2s ease;
+}
+
+.btn-header-outline:hover {
+  background: rgba(253, 230, 138, 0.15);
+  border-color: #fde68a;
+}
+
+/* ==========================================================================
+   صفحه اصلی: لیست خدمات (Home & Services Grid)
+   ========================================================================== */
+.main-content {
+  flex: 1;
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.section-header h2 {
+  font-size: 1.45rem;
+  font-weight: 800;
+  color: var(--text-heading);
+  margin: 0 0 0.3rem 0;
+}
+
+.section-subtitle {
+  color: var(--text-muted);
+  font-size: 0.92rem;
+  margin: 0;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.badge {
+  background-color: var(--info-bg);
+  color: var(--info);
+  border: 1px solid var(--info-border);
+  padding: 0.4rem 0.85rem;
+  border-radius: var(--radius-pill);
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.btn-primary-pill {
+  background-color: var(--primary);
+  color: white;
+  border: none;
+  padding: 0.5rem 1.15rem;
+  border-radius: var(--radius-pill);
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.2s;
+}
+
+.btn-primary-pill:hover {
+  background-color: var(--primary-hover);
+}
+
+/* کارت‌های خدمات */
+.services-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+  gap: 1.5rem;
+}
+
+.service-card {
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-card);
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  box-shadow: var(--shadow-card);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.service-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-hover);
+  border-color: var(--primary-border);
+}
+
+.service-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--text-heading);
+  margin: 0 0 1rem 0;
+}
+
+.service-details {
+  border-top: 1px dashed var(--border-subtle);
+  border-bottom: 1px dashed var(--border-subtle);
+  padding: 1rem 0;
+  margin-bottom: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.detail-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.detail-item .label {
+  color: var(--text-muted);
+  font-size: 0.92rem;
+}
+
+.detail-item .value {
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: var(--text-body);
+}
+
+.price-value {
+  font-size: 1.3rem;
+  font-weight: 800;
+  color: #047857;
+}
+
+.price-value small {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: #065f46;
+  margin-right: 0.2rem;
+}
+
+.book-btn {
+  background-color: var(--primary);
+  color: white;
+  border: none;
+  border-radius: var(--radius-element);
+  padding: 0.8rem 1rem;
+  font-size: 0.98rem;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.2s ease;
+  width: 100%;
+}
+
+.book-btn:hover {
+  background-color: var(--primary-hover);
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
+}
+
+/* ==========================================================================
+   صفحه رزرو نوبت (Booking Form)
+   ========================================================================== */
+.booking-container {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
+
+.booking-card {
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-card);
+  padding: 2.25rem;
+  width: 100%;
+  max-width: 680px;
+  box-shadow: var(--shadow-card);
+}
+
+.booking-card-header {
+  margin-bottom: 1.75rem;
+  border-bottom: 1px solid var(--border-subtle);
+  padding-bottom: 1.25rem;
+}
+
+.back-link {
+  background: none;
+  border: none;
+  color: var(--primary);
+  font-size: 0.92rem;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 0;
+  margin-bottom: 0.75rem;
+  display: inline-block;
+  font-family: inherit;
+}
+
+.back-link:hover {
+  text-decoration: underline;
+}
+
+.booking-card-header h2 {
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: var(--text-heading);
+  margin: 0 0 0.4rem 0;
+}
+
+.booking-subtitle {
+  color: var(--text-muted);
+  font-size: 0.92rem;
+  margin: 0;
+}
+
+.booking-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.35rem;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.25rem;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.form-group label {
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: var(--text-heading);
+}
+
+.form-group input,
+.form-group select {
+  padding: 0.75rem 0.95rem;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-element);
+  font-size: 0.95rem;
+  font-family: inherit;
+  background-color: #ffffff;
+  color: var(--text-heading);
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.form-group input:focus,
+.form-group select:focus {
+  outline: none;
+  border-color: var(--border-focus);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+}
+
+.field-hint {
+  font-size: 0.85rem;
+  color: var(--info);
+  margin: 0.2rem 0 0 0;
+  font-weight: 500;
+}
+
+/* شبکه ساعت‌های نوبت */
+.slots-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(95px, 1fr));
+  gap: 0.65rem;
+  margin-top: 0.5rem;
+}
+
+.slot-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 52px;
+  padding: 0.5rem 0.3rem;
+  border: 1px solid var(--border-subtle);
+  background-color: #ffffff;
+  border-radius: var(--radius-element);
+  cursor: pointer;
+  transition: all 0.18s ease;
+  font-family: inherit;
+}
+
+.slot-btn:hover:not(:disabled) {
+  border-color: var(--primary);
+  background-color: var(--primary-light);
+  color: var(--primary);
+}
+
+.slot-btn.selected {
+  border-color: var(--primary);
+  background-color: var(--primary);
+  color: #ffffff;
+  font-weight: 700;
+  box-shadow: 0 4px 10px rgba(37, 99, 235, 0.25);
+}
+
+.slot-btn.disabled {
+  opacity: 0.5;
+  background-color: #f1f5f9;
+  cursor: not-allowed;
+  border-color: var(--border-subtle);
+}
+
+.slot-time {
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+
+.slot-badge {
+  font-size: 0.68rem;
+  margin-top: 0.2rem;
+  border-radius: 4px;
+  padding: 0.1rem 0.35rem;
+  font-weight: 600;
+}
+
+.slot-badge.booked {
+  color: var(--danger);
+  background-color: var(--danger-bg);
+}
+
+.slot-badge.past {
+  color: var(--text-muted);
+  background-color: #e2e8f0;
+}
+
+.selected-time-notice {
+  font-size: 0.92rem;
+  color: var(--success);
+  font-weight: 600;
+  margin-top: 0.65rem;
+}
+
+.loading-slots {
+  color: var(--text-muted);
+  font-size: 0.92rem;
+  padding: 0.8rem 0;
+}
+
+.slot-error-box {
+  background-color: var(--danger-bg);
+  border: 1px solid var(--danger-border);
+  border-radius: var(--radius-element);
+  padding: 0.9rem 1rem;
+  margin-top: 0.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.slot-error-text {
+  color: var(--danger);
+  font-size: 0.9rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+.retry-btn-small {
+  align-self: flex-start;
+  background-color: var(--danger);
+  color: white;
+  border: none;
+  padding: 0.4rem 0.9rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 600;
+  font-family: inherit;
+  transition: all 0.15s;
+}
+
+.retry-btn-small:hover {
+  background-color: var(--danger-hover);
+}
+
+.btn-submit {
+  width: 100%;
+  padding: 0.9rem;
+  font-size: 1.05rem;
+  font-weight: 800;
+  background-color: var(--success);
+  color: white;
+  border: none;
+  border-radius: var(--radius-element);
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.2s;
+  box-shadow: 0 4px 12px rgba(22, 163, 74, 0.25);
+}
+
+.btn-submit:hover:not(:disabled) {
+  background-color: #15803d;
+  transform: translateY(-1px);
+}
+
+.btn-submit:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+/* ==========================================================================
+   رسید و پیام موفقیت (Success Receipt)
+   ========================================================================== */
+.success-card {
+  background: var(--bg-card);
+  border: 1px solid var(--success-border);
+  border-radius: var(--radius-card);
+  padding: 2.5rem 2rem;
+  width: 100%;
+  max-width: 580px;
+  text-align: center;
+  box-shadow: var(--shadow-hover);
+}
+
+.success-icon {
+  font-size: 3.5rem;
+  margin-bottom: 0.6rem;
+}
+
+.success-card h2 {
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: var(--success);
+  margin: 0 0 0.4rem 0;
+}
+
+.success-subtitle {
+  color: var(--text-muted);
+  font-size: 0.95rem;
+  margin: 0 0 1.5rem 0;
+}
+
+.receipt-box {
+  background-color: var(--bg-page);
+  border: 1px dashed var(--border-medium);
+  border-radius: var(--radius-element);
+  padding: 1.25rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  margin-bottom: 1.75rem;
+}
+
+.receipt-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.receipt-label {
+  color: var(--text-muted);
+  font-size: 0.92rem;
+}
+
+.receipt-value {
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: var(--text-heading);
+}
+
+.time-badge {
+  background-color: var(--info-bg);
+  color: var(--info);
+  border: 1px solid var(--info-border);
+  padding: 0.2rem 0.65rem;
+  border-radius: 6px;
+}
+
+.status-pill {
+  background-color: var(--success-bg);
+  color: var(--success);
+  border: 1px solid var(--success-border);
+  padding: 0.2rem 0.65rem;
+  border-radius: var(--radius-pill);
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.success-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+/* ==========================================================================
+   پنل مدیریت نوبت‌های صاحب کار (Owner Appointments Page)
+   ========================================================================== */
+.owner-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  width: 100%;
+}
+
+.owner-header {
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-card);
+  padding: 1.5rem 1.75rem;
+  box-shadow: var(--shadow-card);
+}
+
+.owner-title-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.owner-title-bar h2 {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--text-heading);
+}
+
+.owner-badge {
+  background-color: var(--brand-gold-light);
+  color: var(--brand-gold-hover);
+  border: 1px solid #fde68a;
+  padding: 0.25rem 0.75rem;
+  border-radius: var(--radius-pill);
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.owner-subtitle {
+  color: var(--text-muted);
+  font-size: 0.92rem;
+  margin: 0.4rem 0 0 0;
+}
+
+/* نوار تاریخ و ناوبری سریع */
+.date-control-card {
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-card);
+  padding: 1.25rem 1.75rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+  box-shadow: var(--shadow-card);
+}
+
+.date-picker-wrap {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.date-picker-wrap label {
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: var(--text-heading);
+}
+
+.date-picker-wrap input[type="date"] {
+  padding: 0.55rem 0.85rem;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-element);
+  font-family: inherit;
+  font-size: 0.95rem;
+  color: var(--text-heading);
+  background-color: #ffffff;
+}
+
+.date-quick-nav {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.btn-nav {
+  background-color: #f1f5f9;
+  border: 1px solid var(--border-subtle);
+  color: var(--text-body);
+  padding: 0.5rem 0.95rem;
+  border-radius: var(--radius-element);
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 0.88rem;
+  font-weight: 700;
+  transition: all 0.15s;
+}
+
+.btn-nav:hover {
+  background-color: #e2e8f0;
+}
+
+.btn-nav.active {
+  background-color: var(--primary);
+  color: white;
+  border-color: var(--primary);
+}
+
+/* خلاصه آماری */
+.stats-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+}
+
+.stat-card {
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-card);
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  box-shadow: var(--shadow-card);
+}
+
+.stat-number {
+  font-size: 2.2rem;
+  font-weight: 800;
+  color: var(--text-heading);
+  line-height: 1.1;
+}
+
+.stat-label {
+  font-size: 0.88rem;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.stat-card.active-stat .stat-number {
+  color: var(--success);
+}
+
+.stat-card.cancelled-stat .stat-number {
+  color: var(--text-muted);
+}
+
+/* جدول نوبت‌ها */
+.appointments-card {
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-card);
+  padding: 1.5rem 1.75rem;
+  box-shadow: var(--shadow-card);
+}
+
+.appointments-card h3 {
+  margin: 0 0 1.25rem 0;
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: var(--text-heading);
+}
+
+.table-responsive {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.appointments-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: right;
+  font-size: 0.95rem;
+  min-width: 580px;
+}
+
+.appointments-table th {
+  background-color: var(--bg-page);
+  padding: 0.85rem 1rem;
+  color: var(--text-muted);
+  font-weight: 700;
+  border-bottom: 2px solid var(--border-subtle);
+  white-space: nowrap;
+}
+
+.appointments-table td {
+  padding: 0.95rem 1rem;
+  border-bottom: 1px solid var(--border-subtle);
+  vertical-align: middle;
+}
+
+.appointments-table tr:hover td {
+  background-color: #f8fafc;
+}
+
+.row-cancelled td {
+  opacity: 0.6;
+  background-color: #fafafa;
+}
+
+.time-tag {
+  font-weight: 800;
+  color: var(--info);
+  background-color: var(--info-bg);
+  border: 1px solid var(--info-border);
+  padding: 0.25rem 0.6rem;
+  border-radius: 6px;
+  white-space: nowrap;
+}
+
+.customer-name {
+  font-weight: 700;
+  color: var(--text-heading);
+}
+
+.phone-link {
+  color: var(--primary);
+  text-decoration: none;
+  font-weight: 600;
+  direction: ltr;
+  display: inline-block;
+}
+
+.phone-link:hover {
+  text-decoration: underline;
+}
+
+.status-tag {
+  padding: 0.25rem 0.7rem;
+  border-radius: var(--radius-pill);
+  font-size: 0.82rem;
+  font-weight: 700;
+  display: inline-block;
+}
+
+.status-active {
+  background-color: var(--success-bg);
+  color: var(--success);
+  border: 1px solid var(--success-border);
+}
+
+.status-cancelled {
+  background-color: var(--danger-bg);
+  color: var(--danger);
+  border: 1px solid var(--danger-border);
+}
+
+.btn-cancel-action {
+  background-color: var(--danger-bg);
+  color: var(--danger);
+  border: 1px solid var(--danger-border);
+  padding: 0.4rem 0.85rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 700;
+  font-family: inherit;
+  transition: all 0.15s;
+}
+
+.btn-cancel-action:hover {
+  background-color: var(--danger);
+  color: white;
+}
+
+.text-muted-tag {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 3rem 1rem;
+  color: var(--text-muted);
+}
+
+.empty-icon {
+  font-size: 3rem;
+  display: block;
+  margin-bottom: 0.5rem;
+}
+
+/* ==========================================================================
+   دکمه‌های استاندارد سیستم (Unified Buttons)
+   ========================================================================== */
+.btn {
+  padding: 0.75rem 1.4rem;
+  border-radius: var(--radius-element);
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+  border: none;
+  font-family: inherit;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-primary {
+  background-color: var(--primary);
+  color: white;
+}
+
+.btn-primary:hover {
+  background-color: var(--primary-hover);
+}
+
+.btn-secondary {
+  background-color: #f1f5f9;
+  color: var(--text-body);
+  border: 1px solid var(--border-subtle);
+}
+
+.btn-secondary:hover {
+  background-color: #e2e8f0;
+}
+
+.btn-danger {
+  background-color: var(--danger);
+  color: white;
+}
+
+.btn-danger:hover:not(:disabled) {
+  background-color: var(--danger-hover);
+}
+
+/* ==========================================================================
+   پیام‌های وضعیت، خطا و موفقیت (Alerts & Status Boxes)
+   ========================================================================== */
+.success-banner {
+  background-color: var(--success-bg);
+  border: 1px solid var(--success-border);
+  color: var(--success);
+  padding: 0.85rem 1.25rem;
+  border-radius: var(--radius-element);
+  font-weight: 700;
+  font-size: 0.95rem;
+}
+
+.error-alert {
+  background-color: var(--danger-bg);
+  border: 1px solid var(--danger-border);
+  color: var(--danger);
+  padding: 0.85rem 1.25rem;
+  border-radius: var(--radius-element);
+  font-weight: 600;
+  font-size: 0.92rem;
+  margin-bottom: 1.2rem;
+}
+
+.status-box {
+  padding: 2.5rem;
+  border-radius: var(--radius-card);
+  text-align: center;
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  box-shadow: var(--shadow-card);
+}
+
+.status-box.loading {
+  color: var(--info);
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.status-box.error {
+  color: var(--danger);
+  font-size: 1.1rem;
+}
+
+.hint {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  margin-top: 0.5rem;
+}
+
+.retry-btn {
+  margin-top: 1rem;
+  background-color: var(--danger);
+  color: white;
+  border: none;
+  padding: 0.55rem 1.3rem;
+  border-radius: var(--radius-element);
+  cursor: pointer;
+  font-size: 0.95rem;
+  font-weight: 600;
+  font-family: inherit;
+}
+
+/* ==========================================================================
+   مودال تایید (Confirmation Modal)
+   ========================================================================== */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(15, 23, 42, 0.65);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  z-index: 1000;
+  backdrop-filter: blur(3px);
+}
+
+.modal-content {
+  background-color: var(--bg-card);
+  border-radius: var(--radius-card);
+  max-width: 480px;
+  width: 100%;
+  padding: 1.75rem;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.25);
+  border: 1px solid var(--border-subtle);
+}
+
+.modal-header h4 {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: var(--danger);
+}
+
+.modal-body {
+  margin: 1rem 0 1.5rem 0;
+  font-size: 0.95rem;
+  color: var(--text-body);
+}
+
+.confirm-details {
+  background-color: var(--bg-page);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-element);
+  padding: 0.85rem 1rem;
+  margin: 0.85rem 0;
+}
+
+.confirm-details p {
+  margin: 0.35rem 0;
+}
+
+.r4-notice {
+  font-size: 0.85rem;
+  color: var(--info);
+  background-color: var(--info-bg);
+  border: 1px solid var(--info-border);
+  padding: 0.65rem 0.85rem;
+  border-radius: 6px;
+  margin-top: 0.75rem;
+  line-height: 1.5;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+}
+
+/* ==========================================================================
+   فوتر (Footer)
+   ========================================================================== */
+.footer {
+  margin-top: auto;
+  padding-top: 2.5rem;
+  padding-bottom: 1.5rem;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  border-top: 1px solid var(--border-subtle);
+}
+
+/* ==========================================================================
+   واکنش‌گرایی موبایل و تبلت (Responsive Mobile Tweaks)
+   ========================================================================== */
+@media (max-width: 768px) {
+  .app-container {
+    padding: 1rem 0.75rem;
+  }
+
+  .header {
+    padding: 1.5rem 1.25rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .header-top {
+    flex-direction: column;
+    align-items: stretch;
+    text-align: center;
+  }
+
+  .logo-section {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .header-nav {
+    justify-content: center;
+    width: 100%;
+  }
+
+  .btn-header-action,
+  .btn-header-secondary,
+  .btn-header-outline {
+    flex: 1 1 auto;
+    text-align: center;
+    padding: 0.6rem 0.8rem;
+    font-size: 0.85rem;
+  }
+
+  .section-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .header-actions {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .services-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+
+  .booking-card {
+    padding: 1.5rem 1.25rem;
+  }
+
+  .slots-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .date-control-card {
+    flex-direction: column;
+    align-items: stretch;
+    padding: 1.25rem;
+  }
+
+  .date-picker-wrap {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .date-quick-nav {
+    justify-content: stretch;
+  }
+
+  .date-quick-nav .btn-nav {
+    flex: 1;
+    text-align: center;
+  }
+
+  .appointments-card {
+    padding: 1.25rem 1rem;
+  }
+}
+
+@media (max-width: 420px) {
+  .slots-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .salon-name {
+    font-size: 1.65rem;
+  }
+}
