@@ -37,6 +37,13 @@ def init_db():
             FOREIGN KEY (service_id) REFERENCES services(id)
         )
     """)
+
+    # شاخص یکتایی برای جلوگیری قطعی از رزرو همزمان یک ساعت برای دو نفر (جلوگیری از Race Condition)
+    cursor.execute("""
+        CREATE UNIQUE INDEX IF NOT EXISTS idx_unique_active_slot 
+        ON appointments (date, start_time) 
+        WHERE status != 'لغو شده'
+    """)
     
     # بررسی خالی بودن جدول خدمات و تزریق داده‌های اولیه
     cursor.execute("SELECT COUNT(*) FROM services")

@@ -1,7 +1,23 @@
 import { useState, useEffect } from 'react'
 
+// تابع دریافت تاریخ محلی به فرمت YYYY-MM-DD بدون باگ اختلاف ساعت جهانی (UTC)
+const getLocalDateString = (d = new Date()) => {
+  const year = d.getFullYear()
+  const month = String(d.getMonth() + 1).padStart(2, '0')
+  const day = String(d.getDate()).padStart(2, '0')
+  return `${year}-${month}-${day}`
+}
+
+// تابع تغییر ایمن روز بدون باگ پرش تاریخ یا تغییر ساعت تابستانی
+const shiftDate = (dateStr, days) => {
+  const [year, month, day] = dateStr.split('-').map(Number)
+  const d = new Date(year, month - 1, day)
+  d.setDate(d.getDate() + days)
+  return getLocalDateString(d)
+}
+
 function OwnerAppointmentsPage({ onBack }) {
-  const todayStr = new Date().toISOString().split('T')[0]
+  const todayStr = getLocalDateString()
   const [selectedDate, setSelectedDate] = useState(todayStr)
   const [appointments, setAppointments] = useState([])
   const [loading, setLoading] = useState(true)
@@ -39,15 +55,11 @@ function OwnerAppointmentsPage({ onBack }) {
   }, [selectedDate])
 
   const handlePrevDay = () => {
-    const current = new Date(selectedDate)
-    current.setDate(current.getDate() - 1)
-    setSelectedDate(current.toISOString().split('T')[0])
+    setSelectedDate(shiftDate(selectedDate, -1))
   }
 
   const handleNextDay = () => {
-    const current = new Date(selectedDate)
-    current.setDate(current.getDate() + 1)
-    setSelectedDate(current.toISOString().split('T')[0])
+    setSelectedDate(shiftDate(selectedDate, 1))
   }
 
   const handleToday = () => {

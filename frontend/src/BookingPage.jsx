@@ -11,14 +11,22 @@ const convertPersianToEnglishDigits = (str) => {
   return res
 }
 
+// تابع دریافت تاریخ محلی به فرمت YYYY-MM-DD بدون باگ اختلاف ساعت جهانی (UTC)
+const getLocalDateString = (d = new Date()) => {
+  const year = d.getFullYear()
+  const month = String(d.getMonth() + 1).padStart(2, '0')
+  const day = String(d.getDate()).padStart(2, '0')
+  return `${year}-${month}-${day}`
+}
+
 function BookingPage({ services, preSelectedServiceId, onBack }) {
-  // تاریخ امروز با فرمت YYYY-MM-DD به عنوان حداقل تاریخ قابل انتخاب
-  const todayStr = new Date().toISOString().split('T')[0]
+  // تاریخ امروز به وقت محلی
+  const todayStr = getLocalDateString()
 
   const [customerName, setCustomerName] = useState('')
   const [customerPhone, setCustomerPhone] = useState('')
   const [selectedServiceId, setSelectedServiceId] = useState(
-    preSelectedServiceId || (services.length > 0 ? services[0].id : '')
+    preSelectedServiceId || (services && services.length > 0 ? services[0].id : '')
   )
   const [selectedDate, setSelectedDate] = useState(todayStr)
   const [selectedTime, setSelectedTime] = useState('')
@@ -29,6 +37,13 @@ function BookingPage({ services, preSelectedServiceId, onBack }) {
   const [submitting, setSubmitting] = useState(false)
   const [errorMessage, setErrorMessage] = useState(null)
   const [successData, setSuccessData] = useState(null)
+
+  // همگام‌سازی انتخاب خدمت در صورت بارگذاری دیرهنگام لیست خدمات
+  useEffect(() => {
+    if ((!selectedServiceId || selectedServiceId === '') && services && services.length > 0) {
+      setSelectedServiceId(services[0].id)
+    }
+  }, [services, selectedServiceId])
 
   // دریافت بازه‌های زمانی آزاد برای تاریخ انتخابی با تایم‌اوت ۵ ثانیه‌ای
   const fetchSlots = (date) => {
@@ -163,6 +178,16 @@ function BookingPage({ services, preSelectedServiceId, onBack }) {
       })
   }
 
+  const handleResetForNewBooking = () => {
+    setSuccessData(null)
+    setCustomerName('')
+    setCustomerPhone('')
+    setSelectedTime('')
+    setErrorMessage(null)
+    // تازه‌سازی لیست ساعت‌ها تا ساعت ثبت‌شده بلافاصله قرمز و رزروشده نشان داده شود
+    fetchSlots(selectedDate)
+  }
+
   // نمایش کارت موفقیت و خلاصه نوبت
   if (successData) {
     return (
@@ -204,10 +229,7 @@ function BookingPage({ services, preSelectedServiceId, onBack }) {
           </div>
 
           <div className="success-actions">
-            <button className="btn btn-secondary" onClick={() => {
-              setSuccessData(null)
-              setSelectedTime('')
-            }}>
+            <button className="btn btn-secondary" onClick={handleResetForNewBooking}>
               ثبت نوبت دیگر
             </button>
             <button className="btn btn-primary" onClick={onBack}>

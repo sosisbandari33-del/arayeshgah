@@ -176,15 +176,23 @@ def book_appointment(appointment_data: AppointmentCreate):
             detail="این بازه زمانی قبلاً رزرو شده است. لطفاً ساعت دیگری را انتخاب کنید."
         )
 
-    # ثبت در دیتابیس
-    saved = create_appointment(
-        customer_name=name,
-        customer_phone=clean_phone,
-        service_id=service["id"],
-        service_name=service["name"],
-        date=appointment_data.date,
-        start_time=appointment_data.start_time
-    )
+    # ثبت در دیتابیس (همراه با محافظت از تداخل همزمانی دو رزرو هم‌زمان)
+    try:
+        saved = create_appointment(
+            customer_name=name,
+            customer_phone=clean_phone,
+            service_id=service["id"],
+            service_name=service["name"],
+            date=appointment_data.date,
+            start_time=appointment_data.start_time
+        )
+    except Exception as err:
+        if "UNIQUE constraint failed" in str(err) or "idx_unique_active_slot" in str(err):
+            raise HTTPException(
+                status_code=400,
+                detail="این بازه زمانی همین چند لحظه پیش توسط مشتری دیگری رزرو شد. لطفاً ساعت دیگری را انتخاب کنید."
+            )
+        raise err
 
     return {
         "success": True,
