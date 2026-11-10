@@ -25,7 +25,11 @@ function OwnerAppointmentsPage({ onBack }) {
         setLoading(false)
       })
       .catch((err) => {
-        setError(err.message)
+        let msg = err.message
+        if (!msg || msg.includes('Failed to fetch') || msg.includes('NetworkError') || err.name === 'TypeError') {
+          msg = 'برقراری ارتباط با سرور ممکن نیست. لطفاً مطمئن شوید سرور بک‌اند در حال اجراست.'
+        }
+        setError(msg)
         setLoading(false)
       })
   }
@@ -57,11 +61,19 @@ function OwnerAppointmentsPage({ onBack }) {
     fetch(`http://127.0.0.1:8000/api/appointments/${appointmentToCancel.id}/cancel`, {
       method: 'PATCH',
     })
-      .then((res) => {
-        if (!res.ok) throw new Error('خطا در لغو نوبت')
-        return res.json()
+      .then(async (res) => {
+        let data
+        try {
+          data = await res.json()
+        } catch {
+          data = {}
+        }
+        if (!res.ok) {
+          throw new Error(data.detail || 'خطا در لغو نوبت')
+        }
+        return data
       })
-      .then((data) => {
+      .then(() => {
         setActionLoading(false)
         setAppointmentToCancel(null)
         setActionMessage('نوبت با موفقیت لغو شد و بازه زمانی آن آزاد گردید.')
@@ -70,7 +82,11 @@ function OwnerAppointmentsPage({ onBack }) {
         setTimeout(() => setActionMessage(null), 4000)
       })
       .catch((err) => {
-        alert(err.message)
+        let msg = err.message
+        if (!msg || msg.includes('Failed to fetch') || msg.includes('NetworkError') || err.name === 'TypeError') {
+          msg = 'برقراری ارتباط با سرور ممکن نیست. لطفاً مطمئن شوید سرور بک‌اند در حال اجراست.'
+        }
+        alert(msg)
         setActionLoading(false)
       })
   }

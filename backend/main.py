@@ -1,5 +1,7 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.exceptions import RequestValidationError
+from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 from datetime import datetime, date as dt_date, time as dt_time
 import re
@@ -20,6 +22,33 @@ init_db()
 
 app = FastAPI(title="سیستم نوبت‌دهی آرایشگاه")
 
+# مدیریت خطاهای اعتبارسنجی ورودی Pydantic و بازگرداندن پیام فارسی شفاف
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(request: Request, exc: RequestValidationError):
+    errors = exc.errors()
+    msg = "داده‌های ورودی نامعتبر است."
+    if errors:
+        first = errors[0]
+        field = first.get("loc", [])[-1]
+        err_type = first.get("type", "")
+        
+        if field == "customer_name":
+            msg = "نام و نام خانوادگی باید بین ۲ تا ۵۰ کاراکتر باشد."
+        elif field == "customer_phone":
+            msg = "شماره موبایل نامعتبر است."
+        elif field == "service_id":
+            msg = "خدمت انتخابی نامعتبر است."
+        elif field == "date":
+            msg = "فرمت تاریخ نامعتبر است."
+        elif field == "start_time":
+            msg = "ساعت انتخابی نامعتبر است."
+        elif "min_length" in err_type:
+            msg = f"طول فیلد {field} کمتر از حد مجاز است."
+        elif "max_length" in err_type:
+            msg = f"طول فیلد {field} بیشتر از حد مجاز است."
+
+    return JSONResponse(status_code=400, content={"detail": msg})
+
 # تنظیمات CORS برای دسترسی فرانت‌اند
 app.add_middleware(
     CORSMiddleware,
@@ -38,8 +67,16 @@ WORKING_SLOTS = [
     "18:00", "18:30", "19:00", "19:30"
 ]
 
+def normalize_digits(text: str) -> str:
+    """تبدیل اعداد فارسی و عربی به اعداد انگلیسی"""
+    persian_digits = "۰۱۲۳۴۵۶۷۸۹"
+    arabic_digits = "٠١٢٣٤٥٦٧٨٩"
+    for i in range(10):
+        text = text.replace(persian_digits[i], str(i)).replace(arabic_digits[i], str(i))
+    return text
+
 class AppointmentCreate(BaseModel):
-    customer_name: str = Field(..., min_length=2, description="نام و نام خانوادگی مشتری")
+    customer_name: str = Field(..., min_length=2, max_length=50, description="نام و نام خانوادگی مشتری")
     customer_phone: str = Field(..., description="شماره موبایل مشتری")
     service_id: int = Field(..., description="شناسه خدمت انتخابی")
     date: str = Field(..., description="تاریخ نوبت با فرمت YYYY-MM-DD")
@@ -87,11 +124,17 @@ def get_daily_slots(date: str):
 
 @app.post("/api/appointments")
 def book_appointment(appointment_data: AppointmentCreate):
+    # اعتبارسنجی مستقل نام: حذف فاصله‌ها و بررسی سقف و کف طول نام
     name = appointment_data.customer_name.strip()
-    phone = appointment_data.customer_phone.strip()
+    if len(name) < 2 or len(name) > 50:
+        raise HTTPException(
+            status_code=400,
+            detail="نام و نام خانوادگی باید بین ۲ تا ۵۰ کاراکتر باشد و نمی‌تواند فقط فاصله باشد."
+        )
 
-    # اعتبارسنجی شماره موبایل
-    clean_phone = re.sub(r"[^\d]", "", phone)
+    # اعتبارسنجی شماره موبایل (پشتیبانی کامل از ارقام فارسی، عربی و انگلیسی)
+    normalized_phone = normalize_digits(appointment_data.customer_phone.strip())
+    clean_phone = re.sub(r"[^\d]", "", normalized_phone)
     if not (len(clean_phone) == 11 and clean_phone.startswith("09")):
         raise HTTPException(
             status_code=400, 

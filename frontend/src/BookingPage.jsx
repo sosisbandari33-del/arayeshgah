@@ -1,5 +1,16 @@
 import { useState, useEffect } from 'react'
 
+// تابع تبدیل ارقام فارسی و عربی به ارقام انگلیسی
+const convertPersianToEnglishDigits = (str) => {
+  const persian = ['۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹']
+  const arabic = ['٠', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩']
+  let res = str || ''
+  for (let i = 0; i < 10; i++) {
+    res = res.replaceAll(persian[i], String(i)).replaceAll(arabic[i], String(i))
+  }
+  return res
+}
+
 function BookingPage({ services, preSelectedServiceId, onBack }) {
   // تاریخ امروز با فرمت YYYY-MM-DD به عنوان حداقل تاریخ قابل انتخاب
   const todayStr = new Date().toISOString().split('T')[0]
@@ -45,7 +56,6 @@ function BookingPage({ services, preSelectedServiceId, onBack }) {
       })
       .catch((err) => {
         clearTimeout(timeoutId)
-        console.error('Fetch slots error:', err)
         // اگر پروکسی با خطا مواجه شد، مستقیم به 127.0.0.1 امتحان کن
         fetch(`http://127.0.0.1:8000/api/slots?date=${date}`)
           .then((res) => {
@@ -56,8 +66,8 @@ function BookingPage({ services, preSelectedServiceId, onBack }) {
             setSlots(data.slots || [])
             setLoadingSlots(false)
           })
-          .catch((secondErr) => {
-            setSlotError('ارتباط با سرور بک‌اند برقرار نشد. لطفاً مطمئن شوید بک‌اند روی پورت ۸۰۰۰ در حال اجراست.')
+          .catch(() => {
+            setSlotError('برقراری ارتباط با سرور ممکن نیست. لطفاً مطمئن شوید سرور بک‌اند در حال اجراست.')
             setLoadingSlots(false)
           })
       })
@@ -71,12 +81,19 @@ function BookingPage({ services, preSelectedServiceId, onBack }) {
     e.preventDefault()
     setErrorMessage(null)
 
-    if (!customerName.trim()) {
-      setErrorMessage('لطفاً نام و نام خانوادگی خود را وارد کنید.')
+    const cleanName = customerName.trim()
+    if (!cleanName || cleanName.length < 2) {
+      setErrorMessage('نام و نام خانوادگی باید حداقل ۲ کاراکتر باشد و نمی‌تواند فقط فاصله باشد.')
       return
     }
 
-    const cleanPhone = customerPhone.replace(/\s+/g, '')
+    if (cleanName.length > 50) {
+      setErrorMessage('نام و نام خانوادگی نمی‌تواند بیشتر از ۵۰ کاراکتر باشد.')
+      return
+    }
+
+    // تبدیل ارقام فارسی و عربی به انگلیسی و حذف فاصله‌ها
+    const cleanPhone = convertPersianToEnglishDigits(customerPhone).replace(/\s+/g, '')
     if (!/^09\d{9}$/.test(cleanPhone)) {
       setErrorMessage('شماره موبایل باید ۱۱ رقم بوده و با ۰۹ شروع شود.')
       return
@@ -105,7 +122,7 @@ function BookingPage({ services, preSelectedServiceId, onBack }) {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        customer_name: customerName.trim(),
+        customer_name: cleanName,
         customer_phone: cleanPhone,
         service_id: Number(selectedServiceId),
         date: selectedDate,
@@ -113,9 +130,22 @@ function BookingPage({ services, preSelectedServiceId, onBack }) {
       }),
     })
       .then(async (res) => {
-        const data = await res.json()
+        let data
+        try {
+          data = await res.json()
+        } catch {
+          data = {}
+        }
         if (!res.ok) {
-          throw new Error(data.detail || 'خطایی در ثبت نوبت رخ داد.')
+          let errorMsg = 'خطایی در ثبت نوبت رخ داد.'
+          if (typeof data.detail === 'string') {
+            errorMsg = data.detail
+          } else if (Array.isArray(data.detail)) {
+            errorMsg = data.detail.map((d) => d.msg || JSON.stringify(d)).join(' - ')
+          } else if (typeof data.detail === 'object' && data.detail !== null) {
+            errorMsg = data.detail.msg || JSON.stringify(data.detail)
+          }
+          throw new Error(errorMsg)
         }
         return data
       })
@@ -124,7 +154,11 @@ function BookingPage({ services, preSelectedServiceId, onBack }) {
         setSubmitting(false)
       })
       .catch((err) => {
-        setErrorMessage(err.message)
+        let msg = err.message
+        if (!msg || msg.includes('Failed to fetch') || msg.includes('NetworkError') || err.name === 'TypeError') {
+          msg = 'برقراری ارتباط با سرور ممکن نیست. لطفاً مطمئن شوید سرور بک‌اند در حال اجراست.'
+        }
+        setErrorMessage(msg)
         setSubmitting(false)
       })
   }

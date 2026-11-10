@@ -25,7 +25,11 @@ function App() {
         setLoading(false)
       })
       .catch((err) => {
-        setError(err.message)
+        let msg = err.message
+        if (!msg || msg.includes('Failed to fetch') || msg.includes('NetworkError') || err.name === 'TypeError') {
+          msg = 'سرور در دسترس نیست'
+        }
+        setError(msg)
         setLoading(false)
       })
   }
