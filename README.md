@@ -6,8 +6,8 @@
 
 ## وضعیت فعلی پروژه
 
-* **فرانت‌اند:** React (Vite) + `react-router-dom` با معماری ماژولار (`api/`, `utils/`, `components/`, `pages/`, `styles/`)، پشتیبانی کامل از چینش راست‌چین (RTL)، فونت استاندارد وزیرمتن و طراحی واکنش‌گرا روی موبایل، تبلت و دسکتاپ.
-* **بک‌اند:** FastAPI (Python) همراه با اعتبارسنجی ورودی‌ها، نرمال‌سازی ارقام فارسی و عربی، کنترل دقیق قوانین کسب‌وکار و تنظیمات CORS.
+* **فرانت‌اند:** React (Vite) + `react-router-dom` با معماری فیچرمحور (`ui/`, `features/`, `api/`, `utils/`, `styles/`)، پشتیبانی کامل از چینش راست‌چین (RTL)، فونت استاندارد وزیرمتن و طراحی واکنش‌گرا روی موبایل، تبلت و دسکتاپ.
+* **بک‌اند:** FastAPI (Python) با تفکیک لایه‌ی دریافت درخواست (`routes/`) از منطق کسب‌وکار (`services/`) و دیتابیس (`database.py`)، همراه با اعتبارسنجی مستقل ورودی‌ها، نرمال‌سازی ارقام فارسی و عربی و تنظیمات CORS.
 * **دیتابیس:** SQLite (`backend/barbershop.db`) شامل جداول خدمات (`services`) و نوبت‌ها (`appointments`).
 
 ---
@@ -17,8 +17,11 @@
 ```text
 arayeshgah/
 ├── backend/
-│   ├── main.py              # برنامه اصلی FastAPI و روت‌های API
-│   ├── database.py          # مدیریت اتصالات SQLite و کوئری‌ها
+│   ├── main.py              # نقطه ورود FastAPI، CORS، مدیریت خطاها و ثبت روترها
+│   ├── schemas.py           # مدل‌های ورودی Pydantic
+│   ├── routes/              # لایه‌ی دریافت درخواست HTTP (health, services, appointments)
+│   ├── services/            # لایه‌ی منطق کسب‌وکار مستقل از HTTP (catalog, appointments, errors)
+│   ├── database.py          # لایه‌ی دسترسی به SQLite و کوئری‌ها
 │   ├── pytest.ini           # تنظیمات ابزار تست pytest
 │   ├── tests/               # تست‌های خودکار HTTP برای همه‌ی اندپوینت‌ها (pytest + TestClient)
 │   ├── barbershop.db        # دیتابیس SQLite (به‌صورت خودکار در اولین اجرا ساخته می‌شود و در گیت نیست)
@@ -27,25 +30,15 @@ arayeshgah/
 ├── frontend/
 │   ├── src/
 │   │   ├── api/
-│   │   │   └── client.js        # لایه مرکزی ارتباط با API بک‌اند (/api)
-│   │   ├── utils/
-│   │   │   ├── date.js          # توابع تاریخ محلی و جابه‌جایی ایمن روزها
-│   │   │   └── persian.js       # تبدیل ارقام فارسی/عربی و قالب‌بندی قیمت
-│   │   ├── components/
-│   │   │   ├── Header.jsx       # هدر و ناوبری مشترک
-│   │   │   ├── Footer.jsx       # فوتر مشترک
-│   │   │   ├── ServiceCard.jsx  # کارت نمایش هر خدمت
-│   │   │   └── CancelModal.jsx  # مودال تأیید لغو نوبت
-│   │   ├── pages/
-│   │   │   ├── HomePage.jsx     # صفحه اصلی (/)
-│   │   │   ├── BookingPage.jsx  # صفحه فرم رزرو نوبت مشتری (/booking)
-│   │   │   └── OwnerAppointmentsPage.jsx # پنل مدیریت نوبت‌های صاحب کار (/owner)
-│   │   ├── styles/
-│   │   │   ├── tokens.css       # متغیرهای سیستم طراحی (رنگ‌ها، سایه‌ها)
-│   │   │   ├── layout.css       # استایل‌های مشترک هدر، فوتر، دکمه‌ها و پیام‌ها
-│   │   │   ├── home.css         # استایل صفحه اصلی و کارت خدمات
-│   │   │   ├── booking.css      # استایل صفحه رزرو و رسید دیجیتال
-│   │   │   └── owner.css        # استایل پنل مدیریت، جدول و مودال
+│   │   │   └── client.js        # هسته‌ی مرکزی ارتباط با API بک‌اند (/api)
+│   │   ├── ui/                  # اجزای عمومی رابط کاربری (Button, Card, Input, Select, Modal, Alert)
+│   │   ├── features/
+│   │   │   ├── services/        # فیچر خدمات (ServicesPage, ServiceCard, servicesApi, services.css)
+│   │   │   ├── booking/         # فیچر رزرو نوبت (BookingPage, BookingReceipt, bookingApi, booking.css)
+│   │   │   └── appointments/    # فیچر مدیریت نوبت‌ها (AppointmentsPage, CancelAppointmentModal, appointmentsApi, appointments.css)
+│   │   ├── components/          # پوسته‌ی مشترک صفحه (Header, Footer)
+│   │   ├── utils/               # توابع کمکی تاریخ محلی و ارقام فارسی
+│   │   ├── styles/              # متغیرهای سیستم طراحی (tokens.css) و چیدمان پایه (layout.css)
 │   │   ├── App.jsx              # مسیریابی اصلی (React Router) و چیدمان کلان
 │   │   ├── index.css            # تنظیمات پایه و RTL
 │   │   └── main.jsx

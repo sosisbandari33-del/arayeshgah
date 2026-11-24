@@ -1,8 +1,9 @@
 import { useNavigate } from 'react-router-dom'
-import ServiceCard from '../components/ServiceCard'
-import '../styles/home.css'
+import { Button, Card } from '../../ui'
+import ServiceCard from './ServiceCard'
+import './services.css'
 
-function HomePage({ services, loading, error, onRetryServices }) {
+function ServicesPage({ services, loading, error, onRetryServices }) {
   const navigate = useNavigate()
 
   const handleBookService = (serviceId = null) => {
@@ -20,27 +21,26 @@ function HomePage({ services, loading, error, onRetryServices }) {
         </div>
         <div className="header-actions">
           <span className="badge">ساعت کاری: ۱۰:۰۰ الی ۲۰:۰۰</span>
-          <button
-            className="btn btn-primary-pill"
-            onClick={() => handleBookService(null)}
-          >
+          <Button variant="primary-pill" onClick={() => handleBookService(null)}>
             رزرو وقت حضوری
-          </button>
+          </Button>
         </div>
       </div>
 
       {loading && (
-        <div className="status-box loading">
+        <Card className="status-box loading">
           <p>در حال بارگذاری لیست خدمات...</p>
-        </div>
+        </Card>
       )}
 
       {error && (
-        <div className="status-box error">
+        <Card className="status-box error">
           <p>❌ برقراری ارتباط با سرور ممکن نیست ({error})</p>
           <p className="hint">لطفاً مطمئن شوید بک‌اند روی پورت ۸۰۰۰ فعال است.</p>
-          <button className="retry-btn" onClick={onRetryServices}>تلاش مجدد</button>
-        </div>
+          <Button variant="retry" onClick={onRetryServices}>
+            تلاش مجدد
+          </Button>
+        </Card>
       )}
 
       {!loading && !error && (
@@ -58,4 +58,4 @@ function HomePage({ services, loading, error, onRetryServices }) {
   )
 }
 
-export default HomePage
+export default ServicesPage

@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react'
 import { Routes, Route, Navigate } from 'react-router-dom'
-import { fetchServices } from './api/client'
 import Header from './components/Header'
 import Footer from './components/Footer'
-import HomePage from './pages/HomePage'
-import BookingPage from './pages/BookingPage'
-import OwnerAppointmentsPage from './pages/OwnerAppointmentsPage'
+import { fetchServices } from './features/services/servicesApi'
+import ServicesPage from './features/services/ServicesPage'
+import BookingPage from './features/booking/BookingPage'
+import AppointmentsPage from './features/appointments/AppointmentsPage'
 import './styles/tokens.css'
 import './styles/layout.css'
 
@@ -58,7 +58,7 @@ function App() {
         <Route
           path="/"
           element={
-            <HomePage
+            <ServicesPage
               services={services}
               loading={loading}
               error={error}
@@ -77,7 +77,7 @@ function App() {
             />
           }
         />
-        <Route path="/owner" element={<OwnerAppointmentsPage />} />
+        <Route path="/owner" element={<AppointmentsPage />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
 
