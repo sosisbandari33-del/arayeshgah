@@ -52,7 +52,7 @@ arayeshgah/
 │   └── package.json
 ├── docs/
 │   ├── README.md            # جدول مسیر و راهنمای مستندات پروژه
-│   ├── AGENTS.md            # قانون‌نامه و اصول مهندسی توسعه
+│   ├── AGENT_RULES.md       # قانون‌نامه‌ی ایجنت (ممنوع‌ها، اول بپرس، استانداردها)
 │   ├── product/
 │   │   └── PRD.md           # سند محصول و محدوده‌ی فعلی
 │   ├── features/
@@ -61,6 +61,7 @@ arayeshgah/
 │   │   └── appointments-management.md # FRD مدیریت نوبت‌ها (شامل قانون R4)
 │   └── architecture/
 │       └── overview.md      # نمای کلی معماری و ارتباط بخش‌های سیستم
+├── AGENTS.md                # پروتکل ۵ فازی کار ایجنت
 └── README.md
 ```
 
