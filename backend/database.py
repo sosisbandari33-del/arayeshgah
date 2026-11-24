@@ -37,7 +37,7 @@ def init_db():
                 date TEXT NOT NULL,
                 start_time TEXT NOT NULL,
                 status TEXT NOT NULL DEFAULT 'رزرو شده',
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                created_at TIMESTAMP DEFAULT (datetime('now', 'localtime')),
                 FOREIGN KEY (service_id) REFERENCES services(id)
             )
         """)
@@ -122,8 +122,8 @@ def create_appointment(
         cursor = conn.cursor()
         cursor.execute(
             """
-            INSERT INTO appointments (customer_name, customer_phone, service_id, service_name, date, start_time, status)
-            VALUES (?, ?, ?, ?, ?, ?, 'رزرو شده')
+            INSERT INTO appointments (customer_name, customer_phone, service_id, service_name, date, start_time, status, created_at)
+            VALUES (?, ?, ?, ?, ?, ?, 'رزرو شده', datetime('now', 'localtime'))
             """,
             (customer_name, customer_phone, service_id, service_name, date, start_time),
         )

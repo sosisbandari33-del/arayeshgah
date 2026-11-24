@@ -1,0 +1,51 @@
+/* ==========================================================================
+   متغیرها و سیستم طراحی (Design Tokens) پیرایش کلاسیک
+   ========================================================================== */
+
+:root {
+  /* پالت رنگی برند */
+  --brand-dark: #0f172a;
+  --brand-navy: #1e293b;
+  --brand-gold: #d97706;
+  --brand-gold-hover: #b45309;
+  --brand-gold-light: #fef3c7;
+
+  /* رنگ‌های تعاملی و دکمه‌ها */
+  --primary: #2563eb;
+  --primary-hover: #1d4ed8;
+  --primary-light: #eff6ff;
+  --primary-border: #bfdbfe;
+
+  /* وضعیت‌ها */
+  --success: #15803d;
+  --success-bg: #f0fdf4;
+  --success-border: #bbf7d0;
+
+  --danger: #b91c1c;
+  --danger-hover: #991b1b;
+  --danger-bg: #fef2f2;
+  --danger-border: #fecaca;
+
+  --info: #0369a1;
+  --info-bg: #f0f9ff;
+  --info-border: #bae6fd;
+
+  /* پس‌زمینه و المان‌ها */
+  --bg-page: #f8fafc;
+  --bg-card: #ffffff;
+  --text-heading: #0f172a;
+  --text-body: #334155;
+  --text-muted: #64748b;
+  --border-subtle: #e2e8f0;
+  --border-medium: #cbd5e1;
+  --border-focus: #3b82f6;
+
+  /* اندازه‌ها و گردی لبه‌ها */
+  --radius-card: 16px;
+  --radius-element: 10px;
+  --radius-pill: 9999px;
+
+  /* سایه‌ها */
+  --shadow-card: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.04);
+  --shadow-hover: 0 12px 20px -4px rgba(0, 0, 0, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.03);
+}

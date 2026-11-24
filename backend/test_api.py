@@ -3,7 +3,7 @@ import sys
 import sqlite3
 import tempfile
 import unittest
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta
 
 from fastapi import HTTPException
 from pydantic import ValidationError
@@ -221,6 +221,22 @@ class BarbershopBackendTests(unittest.TestCase):
         self.assertEqual(response.status_code, 400)
         body = json.loads(response.body.decode("utf-8"))
         self.assertEqual(body["detail"], "ارسال پارامتر تاریخ الزامی است.")
+
+    def test_created_at_uses_local_time(self):
+        payload = main.AppointmentCreate(
+            customer_name="مریم رضایی",
+            customer_phone="09123334455",
+            service_id=1,
+            date=self.future_date,
+            start_time="16:00",
+        )
+        before = datetime.now().replace(microsecond=0) - timedelta(seconds=5)
+        saved = main.book_appointment(payload)["appointment"]
+        after = datetime.now().replace(microsecond=0) + timedelta(seconds=5)
+
+        created_dt = datetime.strptime(saved["created_at"], "%Y-%m-%d %H:%M:%S")
+        self.assertGreaterEqual(created_dt, before)
+        self.assertLessEqual(created_dt, after)
 
 
 if __name__ == "__main__":

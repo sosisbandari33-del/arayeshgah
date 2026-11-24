@@ -1,0 +1,381 @@
+/* ==========================================================================
+   پنل مدیریت نوبت‌های صاحب کار و مودال تأیید (Owner Panel & Modal)
+   ========================================================================== */
+
+.owner-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  width: 100%;
+}
+
+.owner-header {
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-card);
+  padding: 1.5rem 1.75rem;
+  box-shadow: var(--shadow-card);
+}
+
+.owner-title-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.owner-title-bar h2 {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--text-heading);
+}
+
+.owner-badge {
+  background-color: var(--brand-gold-light);
+  color: var(--brand-gold-hover);
+  border: 1px solid #fde68a;
+  padding: 0.25rem 0.75rem;
+  border-radius: var(--radius-pill);
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.owner-subtitle {
+  color: var(--text-muted);
+  font-size: 0.92rem;
+  margin: 0.4rem 0 0 0;
+}
+
+/* نوار تاریخ و ناوبری سریع */
+.date-control-card {
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-card);
+  padding: 1.25rem 1.75rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+  box-shadow: var(--shadow-card);
+}
+
+.date-picker-wrap {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.date-picker-wrap label {
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: var(--text-heading);
+}
+
+.date-picker-wrap input[type="date"] {
+  padding: 0.55rem 0.85rem;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-element);
+  font-family: inherit;
+  font-size: 0.95rem;
+  color: var(--text-heading);
+  background-color: #ffffff;
+}
+
+.date-quick-nav {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.btn-nav {
+  background-color: #f1f5f9;
+  border: 1px solid var(--border-subtle);
+  color: var(--text-body);
+  padding: 0.5rem 0.95rem;
+  border-radius: var(--radius-element);
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 0.88rem;
+  font-weight: 700;
+  transition: all 0.15s;
+}
+
+.btn-nav:hover {
+  background-color: #e2e8f0;
+}
+
+.btn-nav.active {
+  background-color: var(--primary);
+  color: white;
+  border-color: var(--primary);
+}
+
+/* خلاصه آماری */
+.stats-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+}
+
+.stat-card {
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-card);
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  box-shadow: var(--shadow-card);
+}
+
+.stat-number {
+  font-size: 2.2rem;
+  font-weight: 800;
+  color: var(--text-heading);
+  line-height: 1.1;
+}
+
+.stat-label {
+  font-size: 0.88rem;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.stat-card.active-stat .stat-number {
+  color: var(--success);
+}
+
+.stat-card.cancelled-stat .stat-number {
+  color: var(--text-muted);
+}
+
+/* جدول نوبت‌ها */
+.appointments-card {
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-card);
+  padding: 1.5rem 1.75rem;
+  box-shadow: var(--shadow-card);
+}
+
+.appointments-card h3 {
+  margin: 0 0 1.25rem 0;
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: var(--text-heading);
+}
+
+.table-responsive {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.appointments-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: right;
+  font-size: 0.95rem;
+  min-width: 580px;
+}
+
+.appointments-table th {
+  background-color: var(--bg-page);
+  padding: 0.85rem 1rem;
+  color: var(--text-muted);
+  font-weight: 700;
+  border-bottom: 2px solid var(--border-subtle);
+  white-space: nowrap;
+}
+
+.appointments-table td {
+  padding: 0.95rem 1rem;
+  border-bottom: 1px solid var(--border-subtle);
+  vertical-align: middle;
+}
+
+.appointments-table tr:hover td {
+  background-color: #f8fafc;
+}
+
+.row-cancelled td {
+  opacity: 0.6;
+  background-color: #fafafa;
+}
+
+.time-tag {
+  font-weight: 800;
+  color: var(--info);
+  background-color: var(--info-bg);
+  border: 1px solid var(--info-border);
+  padding: 0.25rem 0.6rem;
+  border-radius: 6px;
+  white-space: nowrap;
+}
+
+.customer-name {
+  font-weight: 700;
+  color: var(--text-heading);
+}
+
+.phone-link {
+  color: var(--primary);
+  text-decoration: none;
+  font-weight: 600;
+  direction: ltr;
+  display: inline-block;
+}
+
+.phone-link:hover {
+  text-decoration: underline;
+}
+
+.status-tag {
+  padding: 0.25rem 0.7rem;
+  border-radius: var(--radius-pill);
+  font-size: 0.82rem;
+  font-weight: 700;
+  display: inline-block;
+}
+
+.status-active {
+  background-color: var(--success-bg);
+  color: var(--success);
+  border: 1px solid var(--success-border);
+}
+
+.status-cancelled {
+  background-color: var(--danger-bg);
+  color: var(--danger);
+  border: 1px solid var(--danger-border);
+}
+
+.btn-cancel-action {
+  background-color: var(--danger-bg);
+  color: var(--danger);
+  border: 1px solid var(--danger-border);
+  padding: 0.4rem 0.85rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 700;
+  font-family: inherit;
+  transition: all 0.15s;
+}
+
+.btn-cancel-action:hover {
+  background-color: var(--danger);
+  color: white;
+}
+
+.text-muted-tag {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 3rem 1rem;
+  color: var(--text-muted);
+}
+
+.empty-icon {
+  font-size: 3rem;
+  display: block;
+  margin-bottom: 0.5rem;
+}
+
+/* مودال تایید لغو */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(15, 23, 42, 0.65);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  z-index: 1000;
+  backdrop-filter: blur(3px);
+}
+
+.modal-content {
+  background-color: var(--bg-card);
+  border-radius: var(--radius-card);
+  max-width: 480px;
+  width: 100%;
+  padding: 1.75rem;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.25);
+  border: 1px solid var(--border-subtle);
+}
+
+.modal-header h4 {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: var(--danger);
+}
+
+.modal-body {
+  margin: 1rem 0 1.5rem 0;
+  font-size: 0.95rem;
+  color: var(--text-body);
+}
+
+.confirm-details {
+  background-color: var(--bg-page);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-element);
+  padding: 0.85rem 1rem;
+  margin: 0.85rem 0;
+}
+
+.confirm-details p {
+  margin: 0.35rem 0;
+}
+
+.r4-notice {
+  font-size: 0.85rem;
+  color: var(--info);
+  background-color: var(--info-bg);
+  border: 1px solid var(--info-border);
+  padding: 0.65rem 0.85rem;
+  border-radius: 6px;
+  margin-top: 0.75rem;
+  line-height: 1.5;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+}
+
+@media (max-width: 768px) {
+  .date-control-card {
+    flex-direction: column;
+    align-items: stretch;
+    padding: 1.25rem;
+  }
+
+  .date-picker-wrap {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .date-quick-nav {
+    justify-content: stretch;
+  }
+
+  .date-quick-nav .btn-nav {
+    flex: 1;
+    text-align: center;
+  }
+
+  .appointments-card {
+    padding: 1.25rem 1rem;
+  }
+}
