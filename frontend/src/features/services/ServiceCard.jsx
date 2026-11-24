@@ -1,8 +1,9 @@
-import { formatPrice } from '../utils/persian'
+import { Button, Card } from '../../ui'
+import { formatPrice } from '../../utils/persian'
 
 function ServiceCard({ service, onBook }) {
   return (
-    <div className="service-card">
+    <Card className="service-card">
       <div className="service-header">
         <h3 className="service-title">{service.name}</h3>
       </div>
@@ -20,10 +21,10 @@ function ServiceCard({ service, onBook }) {
         </div>
       </div>
 
-      <button className="book-btn" onClick={() => onBook(service.id)}>
+      <Button variant="book" onClick={() => onBook(service.id)}>
         رزرو نوبت این خدمت
-      </button>
-    </div>
+      </Button>
+    </Card>
   )
 }
 

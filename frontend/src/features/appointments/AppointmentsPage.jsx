@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { fetchAppointments, cancelAppointment } from '../api/client'
-import { getLocalDateString, shiftDate, isValidDateString } from '../utils/date'
-import CancelModal from '../components/CancelModal'
-import '../styles/owner.css'
+import { Alert, Button, Card } from '../../ui'
+import { getLocalDateString, shiftDate, isValidDateString } from '../../utils/date'
+import { fetchAppointments, cancelAppointment } from './appointmentsApi'
+import CancelAppointmentModal from './CancelAppointmentModal'
+import './appointments.css'
 
-function OwnerAppointmentsPage() {
+function AppointmentsPage() {
   const navigate = useNavigate()
   const todayStr = getLocalDateString()
   const [selectedDate, setSelectedDate] = useState(todayStr)
@@ -96,24 +97,24 @@ function OwnerAppointmentsPage() {
 
   return (
     <div className="owner-container">
-      <div className="owner-header">
-        <button className="back-link" onClick={() => navigate('/')}>
+      <Card className="owner-header">
+        <Button variant="back-link" onClick={() => navigate('/')}>
           &larr; بازگشت به صفحه اصلی
-        </button>
+        </Button>
         <div className="owner-title-bar">
           <h2>پنل مدیریت نوبت‌های آرایشگاه</h2>
           <span className="owner-badge">مخصوص صاحب کار</span>
         </div>
         <p className="owner-subtitle">مشاهده برنامه کاری روزانه و مدیریت نوبت‌های رزرو شده</p>
-      </div>
+      </Card>
 
       {actionMessage && (
-        <div className="success-banner">
+        <Alert variant="success">
           <span>✅ {actionMessage}</span>
-        </div>
+        </Alert>
       )}
 
-      <div className="date-control-card">
+      <Card className="date-control-card">
         <div className="date-picker-wrap">
           <label htmlFor="ownerDate">انتخاب روز کاری:</label>
           <input
@@ -125,46 +126,49 @@ function OwnerAppointmentsPage() {
         </div>
 
         <div className="date-quick-nav">
-          <button className="btn-nav" onClick={() => selectDateAndReload(shiftDate(selectedDate, -1))}>
+          <Button variant="nav" onClick={() => selectDateAndReload(shiftDate(selectedDate, -1))}>
             &larr; روز قبل
-          </button>
-          <button
-            className={`btn-nav ${selectedDate === todayStr ? 'active' : ''}`}
+          </Button>
+          <Button
+            variant="nav"
+            className={selectedDate === todayStr ? 'active' : ''}
             onClick={() => selectDateAndReload(getLocalDateString())}
           >
             امروز
-          </button>
-          <button className="btn-nav" onClick={() => selectDateAndReload(shiftDate(selectedDate, 1))}>
+          </Button>
+          <Button variant="nav" onClick={() => selectDateAndReload(shiftDate(selectedDate, 1))}>
             روز بعد &rarr;
-          </button>
+          </Button>
         </div>
-      </div>
+      </Card>
 
       <div className="stats-row">
-        <div className="stat-card">
+        <Card className="stat-card">
           <span className="stat-number">{appointments.length}</span>
           <span className="stat-label">کل نوبت‌های ثبت‌شده</span>
-        </div>
-        <div className="stat-card active-stat">
+        </Card>
+        <Card className="stat-card active-stat">
           <span className="stat-number">{activeCount}</span>
           <span className="stat-label">نوبت‌های فعال</span>
-        </div>
-        <div className="stat-card cancelled-stat">
+        </Card>
+        <Card className="stat-card cancelled-stat">
           <span className="stat-number">{cancelledCount}</span>
           <span className="stat-label">نوبت‌های لغو شده</span>
-        </div>
+        </Card>
       </div>
 
-      <div className="appointments-card">
+      <Card className="appointments-card">
         <h3>برنامه نوبت‌های تاریخ {selectedDate}</h3>
 
         {loading && <p className="loading-text">در حال بارگذاری لیست نوبت‌ها...</p>}
 
         {error && (
-          <div className="error-alert">
+          <Alert variant="error">
             <p>❌ {error}</p>
-            <button className="retry-btn" onClick={handleRetry}>تلاش دوباره</button>
-          </div>
+            <Button variant="retry" onClick={handleRetry}>
+              تلاش دوباره
+            </Button>
+          </Alert>
         )}
 
         {!loading && !error && appointments.length === 0 && (
@@ -210,12 +214,9 @@ function OwnerAppointmentsPage() {
                       </td>
                       <td>
                         {!isCancelled ? (
-                          <button
-                            className="btn-cancel-action"
-                            onClick={() => openCancelModal(item)}
-                          >
+                          <Button variant="cancel-action" onClick={() => openCancelModal(item)}>
                             لغو نوبت
-                          </button>
+                          </Button>
                         ) : (
                           <span className="text-muted-tag">آزاد شده</span>
                         )}
@@ -227,9 +228,9 @@ function OwnerAppointmentsPage() {
             </table>
           </div>
         )}
-      </div>
+      </Card>
 
-      <CancelModal
+      <CancelAppointmentModal
         appointment={appointmentToCancel}
         loading={actionLoading}
         error={cancelError}
@@ -240,4 +241,4 @@ function OwnerAppointmentsPage() {
   )
 }
 
-export default OwnerAppointmentsPage
+export default AppointmentsPage
