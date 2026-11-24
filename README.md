@@ -19,9 +19,11 @@ arayeshgah/
 ├── backend/
 │   ├── main.py              # برنامه اصلی FastAPI و روت‌های API
 │   ├── database.py          # مدیریت اتصالات SQLite و کوئری‌ها
-│   ├── test_api.py          # تست‌های خودکار قوانین کسب‌وکار و اعتبارسنجی
+│   ├── pytest.ini           # تنظیمات ابزار تست pytest
+│   ├── tests/               # تست‌های خودکار HTTP برای همه‌ی اندپوینت‌ها (pytest + TestClient)
 │   ├── barbershop.db        # دیتابیس SQLite (به‌صورت خودکار در اولین اجرا ساخته می‌شود و در گیت نیست)
-│   └── requirements.txt     # وابستگی‌های بک‌اند (fastapi, uvicorn)
+│   ├── requirements.txt     # وابستگی‌های اجرای بک‌اند (fastapi, uvicorn)
+│   └── requirements-dev.txt # وابستگی‌های تست بک‌اند (pytest, httpx)
 ├── frontend/
 │   ├── src/
 │   │   ├── api/
@@ -145,11 +147,18 @@ npm run dev
 
 ---
 
-## اجرای تست‌های خودکار بک‌اند
+## اجرای تست‌های خودکار بک‌اند (`pytest`)
 
-برای بررسی خودکار قوانین کسب‌وکار (R1 تا R4)، اعتبارسنجی‌ها و قیدهای دیتابیس بدون تغییر در دیتابیس اصلی:
+برای نصب ابزارهای تست و بررسی خودکار همه‌ی اندپوینت‌ها و قوانین کسب‌وکار (روی دیتابیس موقت، بدون تغییر در دیتابیس اصلی):
 
 ```powershell
-# از پوشه ریشه پروژه (در ویندوز)
-.\backend\venv\Scripts\python.exe -m unittest discover -s backend -v
+# ۱. نصب ابزارهای تست (یک‌بار در محیط مجازی بک‌اند)
+cd backend
+.\venv\Scripts\pip install -r requirements-dev.txt
+
+# ۲. اجرای همه‌ی تست‌ها
+.\venv\Scripts\pytest -v
+
+# ۳. اجرای تست‌های فقط یک فایل مشخص
+.\venv\Scripts\pytest tests/test_slots_and_booking.py -v
 ```
