@@ -8,8 +8,13 @@ const getLocalDateString = (d = new Date()) => {
   return `${year}-${month}-${day}`
 }
 
-// تابع تغییر ایمن روز بدون باگ پرش تاریخ یا تغییر ساعت تابستانی
+// تابع تغییر ایمن روز بدون باگ پرش تاریخ یا تاریخ خالی
 const shiftDate = (dateStr, days) => {
+  if (!dateStr || !/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
+    const d = new Date()
+    d.setDate(d.getDate() + days)
+    return getLocalDateString(d)
+  }
   const [year, month, day] = dateStr.split('-').map(Number)
   const d = new Date(year, month - 1, day)
   d.setDate(d.getDate() + days)
@@ -22,25 +27,40 @@ function OwnerAppointmentsPage({ onBack }) {
   const [appointments, setAppointments] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
-  
+  const [refreshKey, setRefreshKey] = useState(0)
+
   // برای مودال تأیید لغو نوبت
   const [appointmentToCancel, setAppointmentToCancel] = useState(null)
   const [actionLoading, setActionLoading] = useState(false)
+  const [cancelError, setCancelError] = useState(null)
   const [actionMessage, setActionMessage] = useState(null)
 
-  const fetchAppointments = (date) => {
-    setLoading(true)
-    setError(null)
-    fetch(`http://127.0.0.1:8000/api/appointments?date=${date}`)
-      .then((res) => {
-        if (!res.ok) throw new Error('خطا در دریافت لیست نوبت‌ها')
+  // دریافت لیست نوبت‌های روز انتخابی از مسیر پروکسی /api
+  useEffect(() => {
+    let active = true
+    const controller = new AbortController()
+
+    fetch(`/api/appointments?date=${encodeURIComponent(selectedDate)}`, { signal: controller.signal })
+      .then(async (res) => {
+        if (!res.ok) {
+          let errBody = {}
+          try {
+            errBody = await res.json()
+          } catch {
+            errBody = {}
+          }
+          throw new Error(errBody.detail || 'خطا در دریافت لیست نوبت‌ها')
+        }
         return res.json()
       })
       .then((data) => {
-        setAppointments(data)
+        if (!active) return
+        setAppointments(Array.isArray(data) ? data : [])
+        setError(null)
         setLoading(false)
       })
       .catch((err) => {
+        if (!active || err.name === 'AbortError') return
         let msg = err.message
         if (!msg || msg.includes('Failed to fetch') || msg.includes('NetworkError') || err.name === 'TypeError') {
           msg = 'برقراری ارتباط با سرور ممکن نیست. لطفاً مطمئن شوید سرور بک‌اند در حال اجراست.'
@@ -48,29 +68,58 @@ function OwnerAppointmentsPage({ onBack }) {
         setError(msg)
         setLoading(false)
       })
+
+    return () => {
+      active = false
+      controller.abort()
+    }
+  }, [selectedDate, refreshKey])
+
+  const selectDateAndReload = (nextDate) => {
+    const safeDate = nextDate && /^\d{4}-\d{2}-\d{2}$/.test(nextDate) ? nextDate : getLocalDateString()
+    setSelectedDate(safeDate)
+    setError(null)
+    setLoading(true)
+    if (safeDate === selectedDate) {
+      setRefreshKey((prev) => prev + 1)
+    }
   }
 
-  useEffect(() => {
-    fetchAppointments(selectedDate)
-  }, [selectedDate])
+  const handleRetry = () => {
+    setError(null)
+    setLoading(true)
+    setRefreshKey((prev) => prev + 1)
+  }
 
   const handlePrevDay = () => {
-    setSelectedDate(shiftDate(selectedDate, -1))
+    selectDateAndReload(shiftDate(selectedDate, -1))
   }
 
   const handleNextDay = () => {
-    setSelectedDate(shiftDate(selectedDate, 1))
+    selectDateAndReload(shiftDate(selectedDate, 1))
   }
 
   const handleToday = () => {
-    setSelectedDate(todayStr)
+    selectDateAndReload(getLocalDateString())
+  }
+
+  const openCancelModal = (item) => {
+    setCancelError(null)
+    setAppointmentToCancel(item)
+  }
+
+  const closeCancelModal = () => {
+    if (actionLoading) return
+    setCancelError(null)
+    setAppointmentToCancel(null)
   }
 
   const handleConfirmCancel = () => {
     if (!appointmentToCancel) return
 
     setActionLoading(true)
-    fetch(`http://127.0.0.1:8000/api/appointments/${appointmentToCancel.id}/cancel`, {
+    setCancelError(null)
+    fetch(`/api/appointments/${appointmentToCancel.id}/cancel`, {
       method: 'PATCH',
     })
       .then(async (res) => {
@@ -87,10 +136,12 @@ function OwnerAppointmentsPage({ onBack }) {
       })
       .then(() => {
         setActionLoading(false)
+        setCancelError(null)
         setAppointmentToCancel(null)
         setActionMessage('نوبت با موفقیت لغو شد و بازه زمانی آن آزاد گردید.')
         // به‌روزرسانی لیست
-        fetchAppointments(selectedDate)
+        setLoading(true)
+        setRefreshKey((prev) => prev + 1)
         setTimeout(() => setActionMessage(null), 4000)
       })
       .catch((err) => {
@@ -98,7 +149,7 @@ function OwnerAppointmentsPage({ onBack }) {
         if (!msg || msg.includes('Failed to fetch') || msg.includes('NetworkError') || err.name === 'TypeError') {
           msg = 'برقراری ارتباط با سرور ممکن نیست. لطفاً مطمئن شوید سرور بک‌اند در حال اجراست.'
         }
-        alert(msg)
+        setCancelError(msg)
         setActionLoading(false)
       })
   }
@@ -131,14 +182,14 @@ function OwnerAppointmentsPage({ onBack }) {
             id="ownerDate"
             type="date"
             value={selectedDate}
-            onChange={(e) => setSelectedDate(e.target.value)}
+            onChange={(e) => selectDateAndReload(e.target.value)}
           />
         </div>
 
         <div className="date-quick-nav">
           <button className="btn-nav" onClick={handlePrevDay}>&larr; روز قبل</button>
-          <button 
-            className={`btn-nav ${selectedDate === todayStr ? 'active' : ''}`} 
+          <button
+            className={`btn-nav ${selectedDate === todayStr ? 'active' : ''}`}
             onClick={handleToday}
           >
             امروز
@@ -172,7 +223,7 @@ function OwnerAppointmentsPage({ onBack }) {
         {error && (
           <div className="error-alert">
             <p>❌ {error}</p>
-            <button className="retry-btn" onClick={() => fetchAppointments(selectedDate)}>تلاش دوباره</button>
+            <button className="retry-btn" onClick={handleRetry}>تلاش دوباره</button>
           </div>
         )}
 
@@ -221,7 +272,7 @@ function OwnerAppointmentsPage({ onBack }) {
                         {!isCancelled ? (
                           <button
                             className="btn-cancel-action"
-                            onClick={() => setAppointmentToCancel(item)}
+                            onClick={() => openCancelModal(item)}
                           >
                             لغو نوبت
                           </button>
@@ -246,6 +297,11 @@ function OwnerAppointmentsPage({ onBack }) {
               <h4>⚠️ تأیید لغو نوبت</h4>
             </div>
             <div className="modal-body">
+              {cancelError && (
+                <div className="error-alert">
+                  <span>⚠️ {cancelError}</span>
+                </div>
+              )}
               <p>آیا از لغو نوبت زیر اطمینان دارید؟</p>
               <div className="confirm-details">
                 <p><strong>مشتری:</strong> {appointmentToCancel.customer_name}</p>
@@ -261,7 +317,7 @@ function OwnerAppointmentsPage({ onBack }) {
               <button
                 className="btn btn-secondary"
                 disabled={actionLoading}
-                onClick={() => setAppointmentToCancel(null)}
+                onClick={closeCancelModal}
               >
                 انصراف
               </button>
@@ -281,4 +337,3 @@ function OwnerAppointmentsPage({ onBack }) {
 }
 
 export default OwnerAppointmentsPage
-

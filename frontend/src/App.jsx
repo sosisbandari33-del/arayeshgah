@@ -3,17 +3,41 @@ import BookingPage from './BookingPage'
 import OwnerAppointmentsPage from './OwnerAppointmentsPage'
 import './App.css'
 
+const getViewFromPath = (pathname) => {
+  if (pathname === '/booking') return 'booking'
+  if (pathname === '/owner') return 'owner'
+  return 'home'
+}
+
+const getPathFromView = (view) => {
+  if (view === 'booking') return '/booking'
+  if (view === 'owner') return '/owner'
+  return '/'
+}
+
 function App() {
-  const [currentView, setCurrentView] = useState('home') // 'home' | 'booking' | 'owner'
+  const [currentView, setCurrentView] = useState(() => getViewFromPath(window.location.pathname))
   const [selectedServiceId, setSelectedServiceId] = useState(null)
   const [services, setServices] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+  const [servicesRefreshKey, setServicesRefreshKey] = useState(0)
 
-  const fetchServices = () => {
-    setLoading(true)
-    setError(null)
-    fetch('http://127.0.0.1:8000/api/services')
+  // همگام‌سازی دکمه‌های Back و Forward مرورگر با صفحه فعلی
+  useEffect(() => {
+    const handlePopState = () => {
+      setCurrentView(getViewFromPath(window.location.pathname))
+    }
+    window.addEventListener('popstate', handlePopState)
+    return () => window.removeEventListener('popstate', handlePopState)
+  }, [])
+
+  // دریافت لیست خدمات از سرور با پاک‌سازی ایمن درخواست
+  useEffect(() => {
+    let active = true
+    const controller = new AbortController()
+
+    fetch('/api/services', { signal: controller.signal })
       .then((res) => {
         if (!res.ok) {
           throw new Error('خطا در دریافت لیست خدمات از سرور')
@@ -21,10 +45,13 @@ function App() {
         return res.json()
       })
       .then((data) => {
-        setServices(data)
+        if (!active) return
+        setServices(Array.isArray(data) ? data : [])
+        setError(null)
         setLoading(false)
       })
       .catch((err) => {
+        if (!active || err.name === 'AbortError') return
         let msg = err.message
         if (!msg || msg.includes('Failed to fetch') || msg.includes('NetworkError') || err.name === 'TypeError') {
           msg = 'سرور در دسترس نیست'
@@ -32,20 +59,31 @@ function App() {
         setError(msg)
         setLoading(false)
       })
+
+    return () => {
+      active = false
+      controller.abort()
+    }
+  }, [servicesRefreshKey])
+
+  const handleRetryServices = () => {
+    setLoading(true)
+    setError(null)
+    setServicesRefreshKey((prev) => prev + 1)
   }
 
-  useEffect(() => {
-    fetchServices()
-  }, [])
-
-  const handleStartBooking = (serviceId = null) => {
-    setSelectedServiceId(serviceId)
-    setCurrentView('booking')
-    window.scrollTo({ top: 0, behavior: 'smooth' })
-  }
-
-  const handleOpenOwnerPanel = () => {
-    setCurrentView('owner')
+  const navigateTo = (view, serviceId = null) => {
+    if (view === 'booking') {
+      setSelectedServiceId(serviceId)
+      if (services.length === 0 && !loading) {
+        handleRetryServices()
+      }
+    }
+    setCurrentView(view)
+    const targetPath = getPathFromView(view)
+    if (window.location.pathname !== targetPath) {
+      window.history.pushState({ view }, '', targetPath)
+    }
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
@@ -61,30 +99,30 @@ function App() {
               <p className="salon-tagline">ارائه بهترین و باکیفیت‌ترین خدمات پیرایش و اصلاح آقایان</p>
             </div>
           </div>
-          
+
           <div className="header-nav">
             {currentView !== 'home' && (
-              <button 
+              <button
                 className="btn btn-header-secondary"
-                onClick={() => setCurrentView('home')}
+                onClick={() => navigateTo('home')}
               >
                 🏠 صفحه اصلی
               </button>
             )}
 
             {currentView !== 'booking' && (
-              <button 
+              <button
                 className="btn btn-header-action"
-                onClick={() => handleStartBooking(null)}
+                onClick={() => navigateTo('booking', null)}
               >
                 📅 نوبت بگیر
               </button>
             )}
 
             {currentView !== 'owner' && (
-              <button 
+              <button
                 className="btn btn-header-outline"
-                onClick={handleOpenOwnerPanel}
+                onClick={() => navigateTo('owner')}
               >
                 📋 پنل نوبت‌ها (مدیریت)
               </button>
@@ -97,14 +135,17 @@ function App() {
       {currentView === 'booking' && (
         <BookingPage
           services={services}
+          servicesLoading={loading}
+          servicesError={error}
+          onRetryServices={handleRetryServices}
           preSelectedServiceId={selectedServiceId}
-          onBack={() => setCurrentView('home')}
+          onBack={() => navigateTo('home')}
         />
       )}
 
       {currentView === 'owner' && (
         <OwnerAppointmentsPage
-          onBack={() => setCurrentView('home')}
+          onBack={() => navigateTo('home')}
         />
       )}
 
@@ -117,9 +158,9 @@ function App() {
             </div>
             <div className="header-actions">
               <span className="badge">ساعت کاری: ۱۰:۰۰ الی ۲۰:۰۰</span>
-              <button 
+              <button
                 className="btn btn-primary-pill"
-                onClick={() => handleStartBooking(null)}
+                onClick={() => navigateTo('booking', null)}
               >
                 رزرو وقت حضوری
               </button>
@@ -136,7 +177,7 @@ function App() {
             <div className="status-box error">
               <p>❌ برقراری ارتباط با سرور ممکن نیست ({error})</p>
               <p className="hint">لطفاً مطمئن شوید بک‌اند روی پورت ۸۰۰۰ فعال است.</p>
-              <button className="retry-btn" onClick={fetchServices}>تلاش مجدد</button>
+              <button className="retry-btn" onClick={handleRetryServices}>تلاش مجدد</button>
             </div>
           )}
 
@@ -147,7 +188,7 @@ function App() {
                   <div className="service-header">
                     <h3 className="service-title">{service.name}</h3>
                   </div>
-                  
+
                   <div className="service-details">
                     <div className="detail-item">
                       <span className="label">مدت زمان:</span>
@@ -161,9 +202,9 @@ function App() {
                     </div>
                   </div>
 
-                  <button 
+                  <button
                     className="book-btn"
-                    onClick={() => handleStartBooking(service.id)}
+                    onClick={() => navigateTo('booking', service.id)}
                   >
                     رزرو نوبت این خدمت
                   </button>
