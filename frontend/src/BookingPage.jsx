@@ -19,78 +19,108 @@ const getLocalDateString = (d = new Date()) => {
   return `${year}-${month}-${day}`
 }
 
-function BookingPage({ services, preSelectedServiceId, onBack }) {
-  // تاریخ امروز به وقت محلی
+function BookingPage({
+  services,
+  servicesLoading,
+  servicesError,
+  onRetryServices,
+  preSelectedServiceId,
+  onBack,
+}) {
   const todayStr = getLocalDateString()
 
   const [customerName, setCustomerName] = useState('')
   const [customerPhone, setCustomerPhone] = useState('')
   const [selectedServiceId, setSelectedServiceId] = useState(
-    preSelectedServiceId || (services && services.length > 0 ? services[0].id : '')
+    preSelectedServiceId ? String(preSelectedServiceId) : ''
   )
   const [selectedDate, setSelectedDate] = useState(todayStr)
   const [selectedTime, setSelectedTime] = useState('')
-  
+
   const [slots, setSlots] = useState([])
-  const [loadingSlots, setLoadingSlots] = useState(false)
+  const [loadingSlots, setLoadingSlots] = useState(true)
   const [slotError, setSlotError] = useState(null)
+  const [slotsRefreshKey, setSlotsRefreshKey] = useState(0)
   const [submitting, setSubmitting] = useState(false)
   const [errorMessage, setErrorMessage] = useState(null)
   const [successData, setSuccessData] = useState(null)
 
-  // همگام‌سازی انتخاب خدمت در صورت بارگذاری دیرهنگام لیست خدمات
+  // مقدار مؤثر خدمت بدون نیاز به setState داخل useEffect
+  const effectiveServiceId =
+    selectedServiceId || (services && services.length > 0 ? String(services[0].id) : '')
+
+  // دریافت بازه‌های زمانی آزاد برای تاریخ انتخابی از مسیر پروکسی /api
   useEffect(() => {
-    if ((!selectedServiceId || selectedServiceId === '') && services && services.length > 0) {
-      setSelectedServiceId(services[0].id)
-    }
-  }, [services, selectedServiceId])
+    if (!selectedDate) return
 
-  // دریافت بازه‌های زمانی آزاد برای تاریخ انتخابی با تایم‌اوت ۵ ثانیه‌ای
-  const fetchSlots = (date) => {
-    if (!date) return
-
-    setLoadingSlots(true)
-    setSlotError(null)
-    setSelectedTime('')
-
+    let active = true
     const controller = new AbortController()
     const timeoutId = setTimeout(() => controller.abort(), 5000)
 
-    // ابتدا تلاش از مسیر پروکسی /api و در صورت نیاز آدرس مستقیم
-    const apiUrl = `/api/slots?date=${date}`
-
-    fetch(apiUrl, { signal: controller.signal })
-      .then((res) => {
+    fetch(`/api/slots?date=${encodeURIComponent(selectedDate)}`, { signal: controller.signal })
+      .then(async (res) => {
         clearTimeout(timeoutId)
-        if (!res.ok) throw new Error('خطا در بارگذاری بازه‌های زمانی')
+        if (!res.ok) {
+          let errBody = {}
+          try {
+            errBody = await res.json()
+          } catch {
+            errBody = {}
+          }
+          throw new Error(errBody.detail || 'خطا در بارگذاری بازه‌های زمانی')
+        }
         return res.json()
       })
       .then((data) => {
+        if (!active) return
         setSlots(data.slots || [])
+        setSlotError(null)
         setLoadingSlots(false)
       })
       .catch((err) => {
         clearTimeout(timeoutId)
-        // اگر پروکسی با خطا مواجه شد، مستقیم به 127.0.0.1 امتحان کن
-        fetch(`http://127.0.0.1:8000/api/slots?date=${date}`)
-          .then((res) => {
-            if (!res.ok) throw new Error('خطا')
-            return res.json()
-          })
-          .then((data) => {
-            setSlots(data.slots || [])
-            setLoadingSlots(false)
-          })
-          .catch(() => {
-            setSlotError('برقراری ارتباط با سرور ممکن نیست. لطفاً مطمئن شوید سرور بک‌اند در حال اجراست.')
-            setLoadingSlots(false)
-          })
+        if (!active) return
+        let msg = err.message
+        if (
+          err.name === 'AbortError' ||
+          err.name === 'TypeError' ||
+          !msg ||
+          msg.includes('Failed to fetch') ||
+          msg.includes('NetworkError')
+        ) {
+          msg = 'برقراری ارتباط با سرور ممکن نیست. لطفاً مطمئن شوید سرور بک‌اند در حال اجراست.'
+        }
+        setSlots([])
+        setSlotError(msg)
+        setLoadingSlots(false)
       })
+
+    return () => {
+      active = false
+      clearTimeout(timeoutId)
+      controller.abort()
+    }
+  }, [selectedDate, slotsRefreshKey])
+
+  const handleDateChange = (newDate) => {
+    setSelectedDate(newDate)
+    setSelectedTime('')
+    setSlotError(null)
+    if (!newDate) {
+      setSlots([])
+      setLoadingSlots(false)
+    } else {
+      setLoadingSlots(true)
+    }
   }
 
-  useEffect(() => {
-    fetchSlots(selectedDate)
-  }, [selectedDate])
+  const handleRetrySlots = () => {
+    if (!selectedDate) return
+    setSlotError(null)
+    setSelectedTime('')
+    setLoadingSlots(true)
+    setSlotsRefreshKey((prev) => prev + 1)
+  }
 
   const handleSubmit = (e) => {
     e.preventDefault()
@@ -107,14 +137,14 @@ function BookingPage({ services, preSelectedServiceId, onBack }) {
       return
     }
 
-    // تبدیل ارقام فارسی و عربی به انگلیسی و حذف فاصله‌ها
-    const cleanPhone = convertPersianToEnglishDigits(customerPhone).replace(/\s+/g, '')
+    // تبدیل ارقام فارسی و عربی به انگلیسی و حذف فاصله و خط‌تیره (هماهنگ با بک‌اند)
+    const cleanPhone = convertPersianToEnglishDigits(customerPhone).replace(/[\s-]+/g, '')
     if (!/^09\d{9}$/.test(cleanPhone)) {
-      setErrorMessage('شماره موبایل باید ۱۱ رقم بوده و با ۰۹ شروع شود.')
+      setErrorMessage('شماره موبایل باید ۱۱ رقم بوده، با ۰۹ شروع شود و شامل حروف نباشد.')
       return
     }
 
-    if (!selectedServiceId) {
+    if (!effectiveServiceId) {
       setErrorMessage('لطفاً نوع خدمت را انتخاب کنید.')
       return
     }
@@ -131,7 +161,7 @@ function BookingPage({ services, preSelectedServiceId, onBack }) {
 
     setSubmitting(true)
 
-    fetch('http://127.0.0.1:8000/api/appointments', {
+    fetch('/api/appointments', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -139,7 +169,7 @@ function BookingPage({ services, preSelectedServiceId, onBack }) {
       body: JSON.stringify({
         customer_name: cleanName,
         customer_phone: cleanPhone,
-        service_id: Number(selectedServiceId),
+        service_id: Number(effectiveServiceId),
         date: selectedDate,
         start_time: selectedTime,
       }),
@@ -160,7 +190,9 @@ function BookingPage({ services, preSelectedServiceId, onBack }) {
           } else if (typeof data.detail === 'object' && data.detail !== null) {
             errorMsg = data.detail.msg || JSON.stringify(data.detail)
           }
-          throw new Error(errorMsg)
+          const serverErr = new Error(errorMsg)
+          serverErr.isServerResponse = true
+          throw serverErr
         }
         return data
       })
@@ -175,17 +207,27 @@ function BookingPage({ services, preSelectedServiceId, onBack }) {
         }
         setErrorMessage(msg)
         setSubmitting(false)
+        // در صورت خطای سرور (مثل پر شدن لحظه‌ای ساعت)، لیست ساعت‌ها بلافاصله تازه‌سازی می‌شود
+        if (err.isServerResponse && selectedDate) {
+          setSelectedTime('')
+          setLoadingSlots(true)
+          setSlotsRefreshKey((prev) => prev + 1)
+        }
       })
   }
 
   const handleResetForNewBooking = () => {
+    const currentToday = getLocalDateString()
+    const nextDate = !selectedDate || selectedDate < currentToday ? currentToday : selectedDate
     setSuccessData(null)
     setCustomerName('')
     setCustomerPhone('')
+    setSelectedDate(nextDate)
     setSelectedTime('')
     setErrorMessage(null)
-    // تازه‌سازی لیست ساعت‌ها تا ساعت ثبت‌شده بلافاصله قرمز و رزروشده نشان داده شود
-    fetchSlots(selectedDate)
+    setSlotError(null)
+    setLoadingSlots(true)
+    setSlotsRefreshKey((prev) => prev + 1)
   }
 
   // نمایش کارت موفقیت و خلاصه نوبت
@@ -241,7 +283,7 @@ function BookingPage({ services, preSelectedServiceId, onBack }) {
     )
   }
 
-  const selectedService = services.find((s) => s.id === Number(selectedServiceId))
+  const selectedService = services.find((s) => s.id === Number(effectiveServiceId))
 
   return (
     <div className="booking-container">
@@ -269,6 +311,7 @@ function BookingPage({ services, preSelectedServiceId, onBack }) {
                 placeholder="مثال: محمد امینی"
                 value={customerName}
                 onChange={(e) => setCustomerName(e.target.value)}
+                maxLength={50}
                 required
               />
             </div>
@@ -281,7 +324,7 @@ function BookingPage({ services, preSelectedServiceId, onBack }) {
                 placeholder="مثال: 09121234567"
                 value={customerPhone}
                 onChange={(e) => setCustomerPhone(e.target.value)}
-                maxLength={11}
+                maxLength={16}
                 required
               />
             </div>
@@ -290,21 +333,42 @@ function BookingPage({ services, preSelectedServiceId, onBack }) {
           {/* انتخاب خدمت */}
           <div className="form-group">
             <label htmlFor="serviceSelect">انتخاب خدمت:</label>
-            <select
-              id="serviceSelect"
-              value={selectedServiceId}
-              onChange={(e) => setSelectedServiceId(e.target.value)}
-            >
-              {services.map((service) => (
-                <option key={service.id} value={service.id}>
-                  {service.name} — {Number(service.price).toLocaleString('fa-IR')} تومان ({service.duration} دقیقه)
-                </option>
-              ))}
-            </select>
-            {selectedService && (
-              <p className="field-hint">
-                تعرفه: <strong>{Number(selectedService.price).toLocaleString('fa-IR')} تومان</strong> | مدت: {selectedService.duration} دقیقه
-              </p>
+            {servicesLoading ? (
+              <p className="loading-slots">در حال بارگذاری لیست خدمات...</p>
+            ) : services.length === 0 ? (
+              <div className="slot-error-box">
+                <p className="slot-error-text">
+                  ⚠️ {servicesError ? `دریافت لیست خدمات ممکن نیست (${servicesError}).` : 'هیچ خدمتی یافت نشد.'}
+                </p>
+                {onRetryServices && (
+                  <button
+                    type="button"
+                    className="retry-btn-small"
+                    onClick={onRetryServices}
+                  >
+                    🔄 تلاش دوباره برای دریافت خدمات
+                  </button>
+                )}
+              </div>
+            ) : (
+              <>
+                <select
+                  id="serviceSelect"
+                  value={effectiveServiceId}
+                  onChange={(e) => setSelectedServiceId(e.target.value)}
+                >
+                  {services.map((service) => (
+                    <option key={service.id} value={service.id}>
+                      {service.name} — {Number(service.price).toLocaleString('fa-IR')} تومان ({service.duration} دقیقه)
+                    </option>
+                  ))}
+                </select>
+                {selectedService && (
+                  <p className="field-hint">
+                    تعرفه: <strong>{Number(selectedService.price).toLocaleString('fa-IR')} تومان</strong> | مدت: {selectedService.duration} دقیقه
+                  </p>
+                )}
+              </>
             )}
           </div>
 
@@ -316,7 +380,7 @@ function BookingPage({ services, preSelectedServiceId, onBack }) {
               type="date"
               min={todayStr}
               value={selectedDate}
-              onChange={(e) => setSelectedDate(e.target.value)}
+              onChange={(e) => handleDateChange(e.target.value)}
               required
             />
           </div>
@@ -324,15 +388,17 @@ function BookingPage({ services, preSelectedServiceId, onBack }) {
           {/* انتخاب ساعت (بازه‌های ۳۰ دقیقه‌ای) */}
           <div className="form-group">
             <label>انتخاب ساعت نوبت (بازه‌های ۳۰ دقیقه‌ای از ۱۰:۰۰ الی ۲۰:۰۰):</label>
-            {loadingSlots ? (
+            {!selectedDate ? (
+              <p className="field-hint">لطفاً ابتدا تاریخ نوبت را انتخاب کنید.</p>
+            ) : loadingSlots ? (
               <p className="loading-slots">در حال بررسی ساعت‌های آزاد...</p>
             ) : slotError ? (
               <div className="slot-error-box">
                 <p className="slot-error-text">⚠️ {slotError}</p>
-                <button 
-                  type="button" 
+                <button
+                  type="button"
                   className="retry-btn-small"
-                  onClick={() => fetchSlots(selectedDate)}
+                  onClick={handleRetrySlots}
                 >
                   🔄 تلاش دوباره
                 </button>
@@ -371,7 +437,7 @@ function BookingPage({ services, preSelectedServiceId, onBack }) {
             <button
               type="submit"
               className="btn btn-submit"
-              disabled={submitting || !selectedTime}
+              disabled={submitting || !selectedTime || !effectiveServiceId}
             >
               {submitting ? 'در حال ثبت نوبت...' : 'ثبت نهایی نوبت'}
             </button>
@@ -383,4 +449,3 @@ function BookingPage({ services, preSelectedServiceId, onBack }) {
 }
 
 export default BookingPage
-

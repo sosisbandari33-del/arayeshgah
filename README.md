@@ -19,7 +19,8 @@ arayeshgah/
 ├── backend/
 │   ├── main.py              # برنامه اصلی FastAPI و روت‌های API
 │   ├── database.py          # مدیریت اتصالات SQLite و کوئری‌ها
-│   ├── barbershop.db        # فایل دیتابیس محلی SQLite
+│   ├── test_api.py          # تست‌های خودکار قوانین کسب‌وکار و اعتبارسنجی
+│   ├── barbershop.db        # دیتابیس SQLite (به‌صورت خودکار در اولین اجرا ساخته می‌شود و در گیت نیست)
 │   └── requirements.txt     # وابستگی‌های بک‌اند (fastapi, uvicorn)
 ├── frontend/
 │   ├── src/
@@ -121,6 +122,17 @@ npm run dev
 | `GET` | `/api/appointments?date=YYYY-MM-DD` | دریافت نوبت‌های یک روز مشخص مرتب‌شده بر اساس ساعت شروع |
 | `PATCH` | `/api/appointments/{id}/cancel` | لغو نوبت و آزادسازی بازه زمانی طبق قانون R4 |
 | `GET` | `/api/test` | تست سلامت سرویس بک‌اند |
+
+---
+
+## اجرای تست‌های خودکار بک‌اند
+
+برای بررسی خودکار قوانین کسب‌وکار (R1 تا R4)، اعتبارسنجی‌ها و قیدهای دیتابیس بدون تغییر در دیتابیس اصلی:
+
+```powershell
+# از پوشه ریشه پروژه (در ویندوز)
+.\backend\venv\Scripts\python.exe -m unittest discover -s backend -v
+```
 
 ---
 
