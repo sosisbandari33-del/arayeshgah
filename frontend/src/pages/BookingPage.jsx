@@ -1,39 +1,19 @@
 import { useState, useEffect } from 'react'
+import { useNavigate, useSearchParams } from 'react-router-dom'
+import { fetchSlots, createAppointment } from '../api/client'
+import { getLocalDateString } from '../utils/date'
+import { normalizePhone, formatPrice } from '../utils/persian'
+import '../styles/booking.css'
 
-// تابع تبدیل ارقام فارسی و عربی به ارقام انگلیسی
-const convertPersianToEnglishDigits = (str) => {
-  const persian = ['۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹']
-  const arabic = ['٠', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩']
-  let res = str || ''
-  for (let i = 0; i < 10; i++) {
-    res = res.replaceAll(persian[i], String(i)).replaceAll(arabic[i], String(i))
-  }
-  return res
-}
-
-// تابع دریافت تاریخ محلی به فرمت YYYY-MM-DD بدون باگ اختلاف ساعت جهانی (UTC)
-const getLocalDateString = (d = new Date()) => {
-  const year = d.getFullYear()
-  const month = String(d.getMonth() + 1).padStart(2, '0')
-  const day = String(d.getDate()).padStart(2, '0')
-  return `${year}-${month}-${day}`
-}
-
-function BookingPage({
-  services,
-  servicesLoading,
-  servicesError,
-  onRetryServices,
-  preSelectedServiceId,
-  onBack,
-}) {
+function BookingPage({ services, servicesLoading, servicesError, onRetryServices }) {
+  const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
+  const preSelectedServiceId = searchParams.get('service') || ''
   const todayStr = getLocalDateString()
 
   const [customerName, setCustomerName] = useState('')
   const [customerPhone, setCustomerPhone] = useState('')
-  const [selectedServiceId, setSelectedServiceId] = useState(
-    preSelectedServiceId ? String(preSelectedServiceId) : ''
-  )
+  const [selectedServiceId, setSelectedServiceId] = useState(preSelectedServiceId)
   const [selectedDate, setSelectedDate] = useState(todayStr)
   const [selectedTime, setSelectedTime] = useState('')
 
@@ -45,32 +25,20 @@ function BookingPage({
   const [errorMessage, setErrorMessage] = useState(null)
   const [successData, setSuccessData] = useState(null)
 
-  // مقدار مؤثر خدمت بدون نیاز به setState داخل useEffect
-  const effectiveServiceId =
-    selectedServiceId || (services && services.length > 0 ? String(services[0].id) : '')
+  const hasValidSelectedService = services.some((s) => String(s.id) === String(selectedServiceId))
+  const effectiveServiceId = hasValidSelectedService
+    ? String(selectedServiceId)
+    : services && services.length > 0
+      ? String(services[0].id)
+      : ''
 
-  // دریافت بازه‌های زمانی آزاد برای تاریخ انتخابی از مسیر پروکسی /api
   useEffect(() => {
     if (!selectedDate) return
 
     let active = true
     const controller = new AbortController()
-    const timeoutId = setTimeout(() => controller.abort(), 5000)
 
-    fetch(`/api/slots?date=${encodeURIComponent(selectedDate)}`, { signal: controller.signal })
-      .then(async (res) => {
-        clearTimeout(timeoutId)
-        if (!res.ok) {
-          let errBody = {}
-          try {
-            errBody = await res.json()
-          } catch {
-            errBody = {}
-          }
-          throw new Error(errBody.detail || 'خطا در بارگذاری بازه‌های زمانی')
-        }
-        return res.json()
-      })
+    fetchSlots(selectedDate, controller.signal)
       .then((data) => {
         if (!active) return
         setSlots(data.slots || [])
@@ -78,26 +46,14 @@ function BookingPage({
         setLoadingSlots(false)
       })
       .catch((err) => {
-        clearTimeout(timeoutId)
-        if (!active) return
-        let msg = err.message
-        if (
-          err.name === 'AbortError' ||
-          err.name === 'TypeError' ||
-          !msg ||
-          msg.includes('Failed to fetch') ||
-          msg.includes('NetworkError')
-        ) {
-          msg = 'برقراری ارتباط با سرور ممکن نیست. لطفاً مطمئن شوید سرور بک‌اند در حال اجراست.'
-        }
+        if (!active || err.name === 'AbortError') return
         setSlots([])
-        setSlotError(msg)
+        setSlotError(err.message)
         setLoadingSlots(false)
       })
 
     return () => {
       active = false
-      clearTimeout(timeoutId)
       controller.abort()
     }
   }, [selectedDate, slotsRefreshKey])
@@ -137,8 +93,7 @@ function BookingPage({
       return
     }
 
-    // تبدیل ارقام فارسی و عربی به انگلیسی و حذف فاصله و خط‌تیره (هماهنگ با بک‌اند)
-    const cleanPhone = convertPersianToEnglishDigits(customerPhone).replace(/[\s-]+/g, '')
+    const cleanPhone = normalizePhone(customerPhone)
     if (!/^09\d{9}$/.test(cleanPhone)) {
       setErrorMessage('شماره موبایل باید ۱۱ رقم بوده، با ۰۹ شروع شود و شامل حروف نباشد.')
       return
@@ -161,53 +116,20 @@ function BookingPage({
 
     setSubmitting(true)
 
-    fetch('/api/appointments', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        customer_name: cleanName,
-        customer_phone: cleanPhone,
-        service_id: Number(effectiveServiceId),
-        date: selectedDate,
-        start_time: selectedTime,
-      }),
+    createAppointment({
+      customer_name: cleanName,
+      customer_phone: cleanPhone,
+      service_id: Number(effectiveServiceId),
+      date: selectedDate,
+      start_time: selectedTime,
     })
-      .then(async (res) => {
-        let data
-        try {
-          data = await res.json()
-        } catch {
-          data = {}
-        }
-        if (!res.ok) {
-          let errorMsg = 'خطایی در ثبت نوبت رخ داد.'
-          if (typeof data.detail === 'string') {
-            errorMsg = data.detail
-          } else if (Array.isArray(data.detail)) {
-            errorMsg = data.detail.map((d) => d.msg || JSON.stringify(d)).join(' - ')
-          } else if (typeof data.detail === 'object' && data.detail !== null) {
-            errorMsg = data.detail.msg || JSON.stringify(data.detail)
-          }
-          const serverErr = new Error(errorMsg)
-          serverErr.isServerResponse = true
-          throw serverErr
-        }
-        return data
-      })
       .then((data) => {
         setSuccessData(data.appointment)
         setSubmitting(false)
       })
       .catch((err) => {
-        let msg = err.message
-        if (!msg || msg.includes('Failed to fetch') || msg.includes('NetworkError') || err.name === 'TypeError') {
-          msg = 'برقراری ارتباط با سرور ممکن نیست. لطفاً مطمئن شوید سرور بک‌اند در حال اجراست.'
-        }
-        setErrorMessage(msg)
+        setErrorMessage(err.message)
         setSubmitting(false)
-        // در صورت خطای سرور (مثل پر شدن لحظه‌ای ساعت)، لیست ساعت‌ها بلافاصله تازه‌سازی می‌شود
         if (err.isServerResponse && selectedDate) {
           setSelectedTime('')
           setLoadingSlots(true)
@@ -230,7 +152,11 @@ function BookingPage({
     setSlotsRefreshKey((prev) => prev + 1)
   }
 
-  // نمایش کارت موفقیت و خلاصه نوبت
+  const handleGoHome = () => {
+    navigate('/')
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+
   if (successData) {
     return (
       <div className="booking-container">
@@ -274,7 +200,7 @@ function BookingPage({
             <button className="btn btn-secondary" onClick={handleResetForNewBooking}>
               ثبت نوبت دیگر
             </button>
-            <button className="btn btn-primary" onClick={onBack}>
+            <button className="btn btn-primary" onClick={handleGoHome}>
               بازگشت به صفحه اصلی
             </button>
           </div>
@@ -289,7 +215,7 @@ function BookingPage({
     <div className="booking-container">
       <div className="booking-card">
         <div className="booking-card-header">
-          <button className="back-link" onClick={onBack}>&larr; بازگشت به خانه</button>
+          <button className="back-link" onClick={handleGoHome}>&larr; بازگشت به خانه</button>
           <h2>فرم رزرو نوبت آرایشگاه</h2>
           <p className="booking-subtitle">لطفاً مشخصات خود و زمان مورد نظرتان را مشخص فرمایید.</p>
         </div>
@@ -301,7 +227,6 @@ function BookingPage({
         )}
 
         <form onSubmit={handleSubmit} className="booking-form">
-          {/* مشخصات مشتری */}
           <div className="form-row">
             <div className="form-group">
               <label htmlFor="customerName">نام و نام خانوادگی:</label>
@@ -330,7 +255,6 @@ function BookingPage({
             </div>
           </div>
 
-          {/* انتخاب خدمت */}
           <div className="form-group">
             <label htmlFor="serviceSelect">انتخاب خدمت:</label>
             {servicesLoading ? (
@@ -359,20 +283,19 @@ function BookingPage({
                 >
                   {services.map((service) => (
                     <option key={service.id} value={service.id}>
-                      {service.name} — {Number(service.price).toLocaleString('fa-IR')} تومان ({service.duration} دقیقه)
+                      {service.name} — {formatPrice(service.price)} تومان ({service.duration} دقیقه)
                     </option>
                   ))}
                 </select>
                 {selectedService && (
                   <p className="field-hint">
-                    تعرفه: <strong>{Number(selectedService.price).toLocaleString('fa-IR')} تومان</strong> | مدت: {selectedService.duration} دقیقه
+                    تعرفه: <strong>{formatPrice(selectedService.price)} تومان</strong> | مدت: {selectedService.duration} دقیقه
                   </p>
                 )}
               </>
             )}
           </div>
 
-          {/* انتخاب تاریخ */}
           <div className="form-group">
             <label htmlFor="bookingDate">انتخاب روز:</label>
             <input
@@ -385,7 +308,6 @@ function BookingPage({
             />
           </div>
 
-          {/* انتخاب ساعت (بازه‌های ۳۰ دقیقه‌ای) */}
           <div className="form-group">
             <label>انتخاب ساعت نوبت (بازه‌های ۳۰ دقیقه‌ای از ۱۰:۰۰ الی ۲۰:۰۰):</label>
             {!selectedDate ? (
@@ -432,7 +354,6 @@ function BookingPage({
             )}
           </div>
 
-          {/* دکمه ارسال */}
           <div className="form-actions">
             <button
               type="submit"

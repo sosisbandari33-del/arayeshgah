@@ -1,0 +1,309 @@
+/* ==========================================================================
+   چیدمان مشترک، هدر، فوتر، دکمه‌ها و پیام‌های وضعیت (Shared Layout & UI)
+   ========================================================================== */
+
+.app-container {
+  max-width: 1040px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 1.5rem 1rem;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.main-content {
+  flex: 1;
+}
+
+/* هدر یکپارچه و ناوبری */
+.header {
+  background: linear-gradient(135deg, var(--brand-dark) 0%, var(--brand-navy) 100%);
+  color: #ffffff;
+  border-radius: var(--radius-card);
+  padding: 1.75rem 2rem;
+  margin-bottom: 2rem;
+  box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.25);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.header-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1.25rem;
+}
+
+.logo-section {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  text-decoration: none;
+  color: inherit;
+}
+
+.logo-badge {
+  font-size: 2.8rem;
+  line-height: 1;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  padding: 0.35rem 0.55rem;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.salon-name {
+  font-size: 2rem;
+  font-weight: 800;
+  color: #ffffff;
+  margin: 0 0 0.3rem 0;
+  letter-spacing: -0.5px;
+}
+
+.salon-tagline {
+  font-size: 0.95rem;
+  color: #cbd5e1;
+  margin: 0;
+  font-weight: 400;
+}
+
+.header-nav {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  flex-wrap: wrap;
+}
+
+.btn-header-action {
+  background-color: var(--brand-gold);
+  color: #ffffff;
+  font-weight: 700;
+  padding: 0.65rem 1.25rem;
+  border-radius: var(--radius-pill);
+  border: none;
+  cursor: pointer;
+  font-size: 0.92rem;
+  font-family: inherit;
+  text-decoration: none;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 10px rgba(217, 119, 6, 0.3);
+}
+
+.btn-header-action:hover {
+  background-color: var(--brand-gold-hover);
+  transform: translateY(-2px);
+}
+
+.btn-header-secondary {
+  background: rgba(255, 255, 255, 0.12);
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  padding: 0.65rem 1.25rem;
+  border-radius: var(--radius-pill);
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.92rem;
+  font-family: inherit;
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+.btn-header-secondary:hover {
+  background: rgba(255, 255, 255, 0.22);
+}
+
+.btn-header-outline {
+  background: transparent;
+  color: #fde68a;
+  border: 1px solid rgba(253, 230, 138, 0.4);
+  padding: 0.65rem 1.25rem;
+  border-radius: var(--radius-pill);
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.92rem;
+  font-family: inherit;
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+.btn-header-outline:hover {
+  background: rgba(253, 230, 138, 0.15);
+  border-color: #fde68a;
+}
+
+.back-link {
+  background: none;
+  border: none;
+  color: var(--primary);
+  font-size: 0.92rem;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 0;
+  margin-bottom: 0.75rem;
+  display: inline-block;
+  font-family: inherit;
+  text-decoration: none;
+}
+
+.back-link:hover {
+  text-decoration: underline;
+}
+
+/* دکمه‌های استاندارد سیستم */
+.btn {
+  padding: 0.75rem 1.4rem;
+  border-radius: var(--radius-element);
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+  border: none;
+  font-family: inherit;
+  text-decoration: none;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-primary {
+  background-color: var(--primary);
+  color: white;
+}
+
+.btn-primary:hover {
+  background-color: var(--primary-hover);
+}
+
+.btn-secondary {
+  background-color: #f1f5f9;
+  color: var(--text-body);
+  border: 1px solid var(--border-subtle);
+}
+
+.btn-secondary:hover {
+  background-color: #e2e8f0;
+}
+
+.btn-danger {
+  background-color: var(--danger);
+  color: white;
+}
+
+.btn-danger:hover:not(:disabled) {
+  background-color: var(--danger-hover);
+}
+
+/* پیام‌های وضعیت، خطا و موفقیت */
+.success-banner {
+  background-color: var(--success-bg);
+  border: 1px solid var(--success-border);
+  color: var(--success);
+  padding: 0.85rem 1.25rem;
+  border-radius: var(--radius-element);
+  font-weight: 700;
+  font-size: 0.95rem;
+}
+
+.error-alert {
+  background-color: var(--danger-bg);
+  border: 1px solid var(--danger-border);
+  color: var(--danger);
+  padding: 0.85rem 1.25rem;
+  border-radius: var(--radius-element);
+  font-weight: 600;
+  font-size: 0.92rem;
+  margin-bottom: 1.2rem;
+}
+
+.status-box {
+  padding: 2.5rem;
+  border-radius: var(--radius-card);
+  text-align: center;
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  box-shadow: var(--shadow-card);
+}
+
+.status-box.loading {
+  color: var(--info);
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.status-box.error {
+  color: var(--danger);
+  font-size: 1.1rem;
+}
+
+.hint {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  margin-top: 0.5rem;
+}
+
+.retry-btn {
+  margin-top: 1rem;
+  background-color: var(--danger);
+  color: white;
+  border: none;
+  padding: 0.55rem 1.3rem;
+  border-radius: var(--radius-element);
+  cursor: pointer;
+  font-size: 0.95rem;
+  font-weight: 600;
+  font-family: inherit;
+}
+
+/* فوتر */
+.footer {
+  margin-top: auto;
+  padding-top: 2.5rem;
+  padding-bottom: 1.5rem;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  border-top: 1px solid var(--border-subtle);
+}
+
+/* واکنش‌گرایی مشترک هدر و ظرف اصلی */
+@media (max-width: 768px) {
+  .app-container {
+    padding: 1rem 0.75rem;
+  }
+
+  .header {
+    padding: 1.5rem 1.25rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .header-top {
+    flex-direction: column;
+    align-items: stretch;
+    text-align: center;
+  }
+
+  .logo-section {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .header-nav {
+    justify-content: center;
+    width: 100%;
+  }
+
+  .btn-header-action,
+  .btn-header-secondary,
+  .btn-header-outline {
+    flex: 1 1 auto;
+    text-align: center;
+    padding: 0.6rem 0.8rem;
+    font-size: 0.85rem;
+  }
+}
+
+@media (max-width: 420px) {
+  .salon-name {
+    font-size: 1.65rem;
+  }
+}
