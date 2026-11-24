@@ -7,7 +7,8 @@
 | نوع کار یا پرسش | کدام سند را بخوان؟ |
 | :--- | :--- |
 | هدف سطح ۲، قوانین کسب‌وکار (R5 تا R10)، داده‌های مفهومی و مرز سطح ۳ (Out of Scope) | [docs/product/PRD.md](product/PRD.md) |
-| چرخه‌ی ۷ مرحله‌ای اجرای تسک‌ها، قانون «اول بپرس»، معیارهای کیفیت و چک‌لیست تحویل | [docs/AGENTS.md](AGENTS.md) |
+| پروتکل ۵ فازی کار، نقشه‌ی اثر و مراحل تحویل هر تسک | [AGENTS.md](../AGENTS.md) |
+| قانون‌نامه‌ی ایجنت (ممنوع‌ها، «اول از انسان بپرس» و استانداردهای فنی پروژه) | [docs/AGENT_RULES.md](AGENT_RULES.md) |
 | شناخت بخش‌های فنی فعلی، پشته فنی، دیتابیس و نحوه‌ی ارتباط فرانت و بک‌اند | [docs/architecture/overview.md](architecture/overview.md) |
 | وضعیت فعلی نمایش خدمات و تعرفه‌ها | [docs/features/services.md](features/services.md) |
 | وضعیت فعلی رزرو نوبت (به‌روزرسانی هم‌زمان با تسک‌های سطح ۲) | [docs/features/booking.md](features/booking.md) |
