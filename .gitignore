@@ -1,26 +1,43 @@
-# Python
+# فایل‌های دیتابیس (Database files)
+*.db
+*.sqlite
+*.sqlite3
+*.db-journal
+*.db-wal
+*.db-shm
+
+# فایل‌های تنظیمات و اطلاعات محرمانه (Environment variables)
+.env
+.env.*
+!.env.example
+
+# پوشه‌ی محیط مجازی پایتون (Python virtual environments)
+venv/
+.venv/
+env/
+ENV/
+venv.bak/
+env.bak/
+
+# پوشه‌ها و فایل‌های ساخته‌شده‌ی خودکار پایتون (Python auto-generated)
 __pycache__/
 *.py[cod]
 *$py.class
 *.so
 .Python
-backend/venv/
-backend/env/
-ENV/
-env/
-venv/
-*.db
-*.sqlite3
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+*.egg-info/
 
-# Node / Frontend
-frontend/node_modules/
+# پوشه‌ها و فایل‌های ساخته‌شده‌ی خودکار فرانت‌اند / Node
 node_modules/
-frontend/dist/
 dist/
 dist-ssr/
+.vite/
 *.local
 
-# Editor & OS
+# فایل‌های ویرایشگر و سیستم‌عامل (Editor & OS)
 .vscode/
 .idea/
 *.suo
@@ -31,7 +48,7 @@ dist-ssr/
 .DS_Store
 Thumbs.db
 
-# Logs
+# فایل‌های لاگ (Logs)
 *.log
 npm-debug.log*
 yarn-debug.log*
