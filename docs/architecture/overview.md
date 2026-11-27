@@ -23,10 +23,10 @@
 - **پوسته‌ی مشترک و ابزارها:** `components/` (`Header` و `Footer`)، هسته‌ی مرکزی درخواست‌های شبکه (`api/client.js` روی `/api` با ارسال خودکار هدر `Bearer` و پاک‌سازی نشست در صورت دریافت `401`)، توابع کمکی (`utils/date.js` و `utils/persian.js`) و استایل‌های پایه (`styles/tokens.css` و `styles/layout.css`).
 
 ### ۲. بک‌اند (`backend/`)
-- **تنظیمات متمرکز (`config.py`):** تنها نقطه‌ی مجاز خواندن مقادیر محیطی از `.env` (`ADMIN_PHONE`، `ADMIN_PASSWORD`، `AUTH_SECRET_KEY`).
+- **تنظیمات متمرکز (`config.py`):** تنها نقطه‌ی مجاز خواندن مقادیر محیطی از `.env` (`ADMIN_PHONE`، `ADMIN_PASSWORD`، `AUTH_SECRET_KEY` و `AUTH_TOKEN_TTL_SECONDS`).
 - **لایه‌ی دریافت درخواست HTTP (`main.py`، `schemas.py` و `routes/`):**
-  - `main.py`: اجرای migrationها و ساخت حساب اولیه‌ی مدیر در راه‌اندازی، تنظیم CORS، مدیریت یکپارچه‌ی خطاهای `422`/`401`/`404`/`400` به زبان فارسی و ثبت روترها.
-  - `routes/` (`health.py`، `services.py`، `auth.py`، `schedule.py`، `settings.py`، `appointments.py`): دریافت درخواست‌ها، اعمال وابستگی `require_admin` روی اندپوینت‌های مدیریتی و فراخوانی لایه‌ی منطق کسب‌وکار.
+  - `main.py`: اجرای migrationها و ساخت حساب اولیه‌ی مدیر در راه‌اندازی، تنظیم CORS، مدیریت یکپارچه‌ی خطاهای `422`/`401`/`404`/`409`/`400` به زبان فارسی و ثبت روترها.
+  - `routes/` (`health.py` برای بررسی سلامت `GET /api/test`، `services.py`، `auth.py`، `schedule.py`، `settings.py`، `appointments.py`): دریافت درخواست‌ها، اعمال وابستگی `require_admin` روی اندپوینت‌های مدیریتی و فراخوانی لایه‌ی منطق کسب‌وکار.
 - **لایه‌ی منطق کسب‌وکار (`services/`):** مستقل از FastAPI شامل `errors.py`، `catalog.py`، `auth.py` (هش رمز با `PBKDF2-HMAC-SHA256` و توکن امضاشده‌ی `HMAC-SHA256`)، `schedule.py` (ساعات کاری هفتگی، تعطیلی، مرخصی ساعتی و تشخیص نوبت‌های متداخل)، `settings.py` (نام آرایشگاه، مهلت لغو و تغییر امن موبایل/رمز ورود با بررسی رمز فعلی) و `appointments.py` (اعتبارسنجی فیلدبه‌فیلد و قوانین کسب‌وکار).
 - **لایه‌ی دیتابیس و Migrationها (`database.py` و `migrations/`):** مدیریت اتصالات SQLite با `PRAGMA foreign_keys = ON` و اجرای ترتیبی migrationها با ثبت نسخه در جدول `schema_migrations`.
 - **تست‌های خودکار (`tests/` و `pytest.ini`):** تست‌های HTTP با `pytest` و `TestClient` روی دیتابیس و تنظیمات محیطی ایزوله.

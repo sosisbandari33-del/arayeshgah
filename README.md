@@ -8,7 +8,7 @@
 
 * **فرانت‌اند:** React (Vite) + `react-router-dom` با معماری فیچرمحور (`ui/`, `features/`, `api/`, `utils/`, `styles/`)، پشتیبانی کامل از چینش راست‌چین (RTL)، فونت استاندارد وزیرمتن و طراحی واکنش‌گرا روی موبایل، تبلت و دسکتاپ.
 * **بک‌اند:** FastAPI (Python) با تفکیک لایه‌ی دریافت درخواست (`routes/`) از منطق کسب‌وکار (`services/`) و دیتابیس (`database.py`)، همراه با اعتبارسنجی مستقل ورودی‌ها، نرمال‌سازی ارقام فارسی و عربی و تنظیمات CORS.
-* **دیتابیس:** SQLite (`backend/barbershop.db`) با سیستم migration نسخه‌دار شامل جداول مدیران (`admins`)، خدمات (`services`)، ساعات کاری هفتگی (`working_hours`)، تعطیلی‌ها و مرخصی‌ها (`time_offs`) و نوبت‌ها (`appointments`).
+* **دیتابیس:** SQLite (`backend/barbershop.db`) با سیستم migration نسخه‌دار (`schema_migrations`) شامل جداول مدیران (`admin_users`)، خدمات (`services`)، ساعات کاری هفتگی (`working_hours`)، تعطیلی‌ها و مرخصی‌ها (`time_offs`)، نوبت‌ها (`appointments`)، خدمات هر نوبت (`appointment_services`) و تنظیمات برنامه (`app_settings`).
 
 ---
 
@@ -57,7 +57,7 @@ arayeshgah/
 │   ├── product/
 │   │   └── PRD.md           # سند محصول و محدوده‌ی فعلی
 │   ├── features/
-│   │   ├── admin-auth.md    # FRD احراز هویت مدیر و پنل مدیریت (شامل R11)
+│   │   ├── admin-auth.md    # FRD احراز هویت مدیر و حفاظت پنل مدیریت
 │   │   ├── services.md      # FRD خدمات و تعرفه‌ها (شامل R5 و R8)
 │   │   ├── working-hours.md # FRD ساعات کاری، تعطیلی‌ها و مرخصی‌ها (شامل R6 و R7)
 │   │   ├── booking.md       # FRD رزرو ۴ مرحله‌ای نوبت بر اساس مدت خدمات (شامل R3، R5 تا R8 و R10)
@@ -153,7 +153,7 @@ npm run dev
 
 ## مستندات فنی و محصول
 
-برای مطالعه‌ی مشخصات محصول، رفتار هر فیچر، قوانین کسب‌وکار (R1 تا R4)، فهرست APIها و معماری سیستم، از جدول مسیر در [docs/README.md](docs/README.md) شروع کنید.
+برای مطالعه‌ی مشخصات محصول، رفتار هر فیچر، قوانین کسب‌وکار (`R3` تا `R10`)، فهرست APIها و معماری سیستم، از جدول مسیر در [docs/README.md](docs/README.md) شروع کنید.
 
 ---
 
