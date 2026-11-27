@@ -34,6 +34,15 @@ function AdminSettingsPage({ onServicesChanged, onPublicSettingsChanged }) {
   const [loading, setLoading] = useState(true)
   const [loadError, setLoadError] = useState(null)
   const [reloadKey, setReloadKey] = useState(0)
+  const [activeSection, setActiveSection] = useState('section-general')
+
+  const scrollToSection = (sectionId) => {
+    setActiveSection(sectionId)
+    const target = document.getElementById(sectionId)
+    if (target) {
+      target.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    }
+  }
 
   const [salonName, setSalonName] = useState('')
   const [cancelDeadlineHours, setCancelDeadlineHours] = useState('')
@@ -215,27 +224,45 @@ function AdminSettingsPage({ onServicesChanged, onPublicSettingsChanged }) {
           از این صفحه می‌توانید تمام بخش‌های سامانه را یک‌جا مدیریت کنید: نام آرایشگاه، مهلت لغو نوبت، شماره موبایل و رمز ورود، ساعت کاری هفته، تعطیلی‌ها/مرخصی‌ها و خدمات.
         </p>
         <nav className="settings-anchor-nav" aria-label="پرش سریع به بخش‌های تنظیمات">
-          <a href="#section-general" className="settings-anchor-pill">
+          <button
+            type="button"
+            className={`settings-anchor-pill ${activeSection === 'section-general' ? 'active' : ''}`.trim()}
+            onClick={() => scrollToSection('section-general')}
+          >
             🏪 نام و مهلت لغو
-          </a>
-          <a href="#section-security" className="settings-anchor-pill">
+          </button>
+          <button
+            type="button"
+            className={`settings-anchor-pill ${activeSection === 'section-security' ? 'active' : ''}`.trim()}
+            onClick={() => scrollToSection('section-security')}
+          >
             🔐 موبایل و رمز ورود
-          </a>
-          <a href="#section-schedule" className="settings-anchor-pill">
+          </button>
+          <button
+            type="button"
+            className={`settings-anchor-pill ${activeSection === 'section-schedule' ? 'active' : ''}`.trim()}
+            onClick={() => scrollToSection('section-schedule')}
+          >
             🕒 ساعت کاری و تعطیلی‌ها
-          </a>
-          <a href="#section-services" className="settings-anchor-pill">
+          </button>
+          <button
+            type="button"
+            className={`settings-anchor-pill ${activeSection === 'section-services' ? 'active' : ''}`.trim()}
+            onClick={() => scrollToSection('section-services')}
+          >
             ✂️ خدمات آرایشگاه
-          </a>
+          </button>
         </nav>
       </Card>
 
       {loading ? (
-        <Card className="settings-section-card">
+        <Card className="settings-section-card" id="section-general">
+          <div id="section-security" />
           <LoadingState variant="box" label="در حال بارگذاری تنظیمات کلی و اطلاعات حساب..." />
         </Card>
       ) : loadError ? (
-        <Card className="settings-section-card">
+        <Card className="settings-section-card" id="section-general">
+          <div id="section-security" />
           <ErrorState message={loadError} onRetry={handleRetryLoad} />
         </Card>
       ) : (

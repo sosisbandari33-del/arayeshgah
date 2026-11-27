@@ -286,6 +286,57 @@
   font-family: inherit;
 }
 
+/* پوسته‌ی مشترک انتخابگر تقویم و ساعت (سازگار با موبایل و لمس اول) */
+.picker-input-shell {
+  display: flex;
+  align-items: stretch;
+  gap: 0.5rem;
+  width: 100%;
+}
+
+.picker-input-shell input {
+  flex: 1;
+  min-width: 0;
+  cursor: pointer;
+  direction: ltr;
+  text-align: right;
+}
+
+.picker-trigger-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.3rem;
+  padding: 0 0.85rem;
+  border: 1px solid var(--primary-border);
+  background-color: var(--primary-light);
+  color: var(--primary);
+  border-radius: var(--radius-element);
+  font-family: inherit;
+  font-size: 0.86rem;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+
+.picker-trigger-btn:hover:not(:disabled) {
+  background-color: #dbeafe;
+  border-color: var(--primary);
+}
+
+.picker-trigger-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.ltr-numeric-input {
+  direction: ltr !important;
+  text-align: left;
+  unicode-bidi: isolate;
+}
+
 /* ابزارهای مشترک کوتاه‌سازی متن‌های خیلی بلند (جلوگیری از به‌هم‌ریختگی صفحه) */
 .text-truncate-line {
   overflow: hidden;

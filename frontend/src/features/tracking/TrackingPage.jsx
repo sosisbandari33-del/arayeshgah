@@ -11,9 +11,10 @@ import {
   Modal,
 } from '../../ui'
 import {
-  convertPersianToEnglishDigits,
   formatPrice,
   normalizePhone,
+  normalizeTrackingCode,
+  sanitizeDigitInputDisplay,
   toPersianDigits,
 } from '../../utils/persian'
 import { cancelAppointmentByCustomer, lookupAppointment } from './trackingApi'
@@ -54,7 +55,7 @@ function TrackingPage() {
       errors.customer_phone = 'شماره موبایل باید ۱۱ رقم بوده و با ۰۹ شروع شود.'
     }
 
-    const cleanCode = convertPersianToEnglishDigits(trackingCode).replace(/\s+/g, '')
+    const cleanCode = normalizeTrackingCode(trackingCode)
     if (!cleanCode) {
       errors.tracking_code = 'وارد کردن کد پیگیری الزامی است.'
     } else if (!/^\d{6}$/.test(cleanCode)) {
@@ -159,10 +160,12 @@ function TrackingPage() {
               id="trackingPhone"
               label="شماره موبایل:"
               type="tel"
-              placeholder="مثال: 09121234567"
+              dir="ltr"
+              className="ltr-numeric-input"
+              placeholder="09121234567"
               value={phone}
               onChange={(e) => {
-                setPhone(e.target.value)
+                setPhone(sanitizeDigitInputDisplay(e.target.value))
                 clearFieldError('customer_phone')
               }}
               error={fieldErrors.customer_phone}
@@ -173,11 +176,13 @@ function TrackingPage() {
               id="trackingCodeInput"
               label="کد پیگیری ۶ رقمی:"
               type="text"
+              dir="ltr"
               inputMode="numeric"
-              placeholder="کد ۶ رقمی رسید"
+              className="ltr-numeric-input tracking-code-field"
+              placeholder="مثال: ۴۸۲۹۱۵"
               value={trackingCode}
               onChange={(e) => {
-                setTrackingCode(e.target.value)
+                setTrackingCode(sanitizeDigitInputDisplay(e.target.value))
                 clearFieldError('tracking_code')
               }}
               error={fieldErrors.tracking_code}

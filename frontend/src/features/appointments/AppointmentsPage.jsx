@@ -6,6 +6,7 @@ import {
   Card,
   EmptyState,
   ErrorState,
+  Input,
   LoadingState,
 } from '../../ui'
 import { getLocalDateString, shiftDate, isValidDateString } from '../../utils/date'
@@ -124,10 +125,11 @@ function AppointmentsPage() {
 
       <Card className="date-control-card">
         <div className="date-picker-wrap">
-          <label htmlFor="ownerDate">انتخاب روز کاری:</label>
-          <input
+          <Input
             id="ownerDate"
+            label="انتخاب روز کاری:"
             type="date"
+            wrapperClassName="owner-date-input-group"
             value={selectedDate}
             onChange={(e) => selectDateAndReload(e.target.value)}
           />

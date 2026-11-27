@@ -36,13 +36,23 @@ def _now() -> datetime:
     return datetime.now()
 
 
+INVISIBLE_BIDI_PATTERN = re.compile(
+    r"[\u200b-\u200f\u202a-\u202e\u2066-\u2069\u061c\ufeff]"
+)
+
+
 def normalize_digits(text: str) -> str:
-    """تبدیل اعداد فارسی و عربی به اعداد انگلیسی"""
+    """تبدیل اعداد فارسی، عربی و تمام‌عرض به اعداد انگلیسی و حذف کاراکترهای نامرئی جهت‌دهی/نیم‌فاصله"""
+    clean = INVISIBLE_BIDI_PATTERN.sub("", text or "")
     persian_digits = "۰۱۲۳۴۵۶۷۸۹"
     arabic_digits = "٠١٢٣٤٥٦٧٨٩"
     for i in range(10):
-        text = text.replace(persian_digits[i], str(i)).replace(arabic_digits[i], str(i))
-    return text
+        clean = (
+            clean.replace(persian_digits[i], str(i))
+            .replace(arabic_digits[i], str(i))
+            .replace(chr(0xFF10 + i), str(i))
+        )
+    return clean
 
 
 def validate_strict_date_value(date_str: str) -> tuple[dt_date | None, str | None, str | None]:
@@ -434,7 +444,7 @@ def _validate_tracking_credentials(
         field_errors["customer_phone"] = "شماره موبایل باید ۱۱ رقم بوده و با ۰۹ شروع شود."
 
     clean_code = normalize_digits((tracking_code or "").strip())
-    clean_code = re.sub(r"\s+", "", clean_code)
+    clean_code = re.sub(r"[\s-]+", "", clean_code)
     if not clean_code:
         field_errors["tracking_code"] = "وارد کردن کد پیگیری الزامی است."
     elif not TRACKING_CODE_PATTERN.fullmatch(clean_code):
