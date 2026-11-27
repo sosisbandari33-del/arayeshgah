@@ -72,6 +72,9 @@ export async function requestJson(
       const serverErr = new Error(extractServerError(data, fallbackError))
       serverErr.isServerResponse = true
       serverErr.status = res.status
+      if (data?.errors && typeof data.errors === 'object' && !Array.isArray(data.errors)) {
+        serverErr.fieldErrors = data.errors
+      }
       throw serverErr
     }
 

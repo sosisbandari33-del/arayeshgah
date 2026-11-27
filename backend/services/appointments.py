@@ -12,6 +12,7 @@ from database import (
 )
 from services.errors import (
     ConflictDomainError,
+    FieldValidationError,
     NotFoundDomainError,
     ValidationDomainError,
 )
@@ -38,18 +39,26 @@ def normalize_digits(text: str) -> str:
     return text
 
 
-def parse_strict_date(date_str: str) -> tuple[dt_date, str]:
-    """اعتبارسنجی دقیق فرمت YYYY-MM-DD (با صفر پیشوند) و بازگرداندن تاریخ استاندارد"""
+def validate_strict_date_value(date_str: str) -> tuple[dt_date | None, str | None, str | None]:
+    """بررسی دقیق فرمت YYYY-MM-DD (با صفر پیشوند) و معتبر بودن تاریخ تقویمی"""
     clean_date = normalize_digits((date_str or "").strip())
+    if not clean_date:
+        return None, None, "وارد کردن تاریخ الزامی است."
     if not DATE_PATTERN.match(clean_date):
-        raise ValidationDomainError(
-            "فرمت تاریخ نامعتبر است (باید دقیقاً به شکل YYYY-MM-DD باشد)."
-        )
+        return None, None, "فرمت تاریخ نامعتبر است (باید دقیقاً به شکل YYYY-MM-DD باشد)."
     try:
         parsed = datetime.strptime(clean_date, "%Y-%m-%d").date()
-    except ValueError as err:
-        raise ValidationDomainError("تاریخ واردشده معتبر نیست.") from err
-    return parsed, parsed.strftime("%Y-%m-%d")
+    except ValueError:
+        return None, None, "تاریخ واردشده معتبر نیست."
+    return parsed, parsed.strftime("%Y-%m-%d"), None
+
+
+def parse_strict_date(date_str: str) -> tuple[dt_date, str]:
+    """اعتبارسنجی تاریخ و پرتاب FieldValidationError برای فیلد date"""
+    parsed, normalized, err_msg = validate_strict_date_value(date_str)
+    if err_msg or parsed is None or normalized is None:
+        raise FieldValidationError({"date": err_msg or "تاریخ واردشده معتبر نیست."})
+    return parsed, normalized
 
 
 def get_daily_slots_logic(date_str: str):
@@ -87,33 +96,47 @@ def book_appointment_logic(
     date_str: str,
     start_time: str,
 ):
-    """اعتبارسنجی مستقل قوانین کسب‌وکار و ثبت نوبت جدید"""
-    name = customer_name.strip()
-    if len(name) < 2 or len(name) > 50:
-        raise ValidationDomainError(
-            "نام و نام خانوادگی باید بین ۲ تا ۵۰ کاراکتر باشد و نمی‌تواند فقط فاصله باشد."
-        )
+    """اعتبارسنجی مستقل همه‌ی ورودی‌ها (با خطای فیلدبه‌فیلد 422) و اعمال قوانین کسب‌وکار"""
+    field_errors: dict[str, str] = {}
 
-    normalized_phone = normalize_digits(customer_phone.strip())
+    # ۱. اعتبارسنجی نام مشتری (قانون R10: خالی نباشد، بین ۲ تا ۵۰ کاراکتر)
+    name = (customer_name or "").strip()
+    if not name:
+        field_errors["customer_name"] = "نام و نام خانوادگی نمی‌تواند خالی باشد."
+    elif len(name) < 2 or len(name) > 50:
+        field_errors["customer_name"] = "نام و نام خانوادگی باید بین ۲ تا ۵۰ کاراکتر باشد."
+
+    # ۲. اعتبارسنجی شماره موبایل (قانون R10: ۱۱ رقم و با ۰۹ شروع شود، پشتیبانی از ارقام فارسی/عربی)
+    normalized_phone = normalize_digits((customer_phone or "").strip())
     clean_phone = re.sub(r"[\s-]+", "", normalized_phone)
-    if not PHONE_PATTERN.fullmatch(clean_phone):
-        raise ValidationDomainError(
-            "شماره موبایل نامعتبر است (باید ۱۱ رقمی و با ۰۹ شروع شود و شامل حروف نباشد)."
-        )
+    if not clean_phone:
+        field_errors["customer_phone"] = "وارد کردن شماره موبایل الزامی است."
+    elif not PHONE_PATTERN.fullmatch(clean_phone):
+        field_errors["customer_phone"] = "شماره موبایل باید ۱۱ رقم بوده و با ۰۹ شروع شود."
 
+    # ۳. اعتبارسنجی خدمت انتخابی
     service = get_service_by_id(service_id)
     if not service:
-        raise NotFoundDomainError("خدمت انتخابی معتبر نیست.")
+        field_errors["service_id"] = "خدمت انتخابی معتبر نیست."
 
-    # اعتبارسنجی قانون R1: بازه‌های ۳۰ دقیقه‌ای بین ۱۰ تا ۲۰
-    if start_time not in WORKING_SLOTS:
-        raise ValidationDomainError(
-            "ساعت انتخابی خارج از ساعات کاری (۱۰ تا ۲۰) یا بازه‌های ۳۰ دقیقه‌ای است."
-        )
+    # ۴. اعتبارسنجی تاریخ
+    app_date, normalized_date, date_err = validate_strict_date_value(date_str)
+    if date_err:
+        field_errors["date"] = date_err
 
-    # اعتبارسنجی دقیق تاریخ و استانداردسازی به YYYY-MM-DD
-    app_date, normalized_date = parse_strict_date(date_str)
-    hour, minute = map(int, start_time.split(":"))
+    # ۵. اعتبارسنجی ساعت انتخابی (قانون R1)
+    clean_time = (start_time or "").strip()
+    if not clean_time:
+        field_errors["start_time"] = "انتخاب ساعت نوبت الزامی است."
+    elif clean_time not in WORKING_SLOTS:
+        field_errors["start_time"] = "ساعت انتخابی خارج از ساعات کاری (۱۰ تا ۲۰) یا بازه‌های ۳۰ دقیقه‌ای است."
+
+    if field_errors:
+        raise FieldValidationError(field_errors)
+
+    assert app_date is not None and normalized_date is not None and service is not None
+
+    hour, minute = map(int, clean_time.split(":"))
     app_datetime = datetime.combine(app_date, dt_time(hour, minute))
 
     # اعتبارسنجی قانون R3: عدم ثبت نوبت در گذشته
@@ -122,7 +145,7 @@ def book_appointment_logic(
 
     # اعتبارسنجی قانون R2: تداخل نوبت
     booked_slots = get_booked_slots(normalized_date)
-    if start_time in booked_slots:
+    if clean_time in booked_slots:
         raise ConflictDomainError(
             "این بازه زمانی قبلاً رزرو شده است. لطفاً ساعت دیگری را انتخاب کنید."
         )
@@ -135,7 +158,7 @@ def book_appointment_logic(
             service_id=service["id"],
             service_name=service["name"],
             date=normalized_date,
-            start_time=start_time,
+            start_time=clean_time,
         )
     except sqlite3.IntegrityError as err:
         if "UNIQUE constraint failed" in str(err) or "idx_unique_active_slot" in str(err):

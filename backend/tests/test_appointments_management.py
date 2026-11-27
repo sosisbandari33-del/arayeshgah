@@ -31,13 +31,15 @@ def test_list_appointments_success_empty_and_sorted_by_time(client, future_date)
     assert [item["start_time"] for item in items] == ["10:30", "15:00"]
 
 
-def test_list_appointments_error_missing_or_invalid_date(client):
+def test_list_appointments_error_missing_or_invalid_date_returns_422(client):
     missing_res = client.get("/api/appointments")
-    assert missing_res.status_code == 400
+    assert missing_res.status_code == 422
     assert missing_res.json()["detail"] == "ارسال پارامتر تاریخ الزامی است."
+    assert missing_res.json()["errors"]["date"] == "ارسال پارامتر تاریخ الزامی است."
 
     invalid_res = client.get("/api/appointments", params={"date": "2027-5-7"})
-    assert invalid_res.status_code == 400
+    assert invalid_res.status_code == 422
+    assert "date" in invalid_res.json()["errors"]
 
 
 def test_cancel_appointment_success_preserves_record_and_frees_slot(client, future_date):
@@ -95,7 +97,9 @@ def test_cancel_appointment_error_nonexistent_id_returns_404(client):
     assert response.json()["detail"] == "نوبت مورد نظر یافت نشد."
 
 
-def test_cancel_appointment_error_invalid_id_type_returns_400(client):
+def test_cancel_appointment_error_invalid_id_type_returns_422(client):
     response = client.patch("/api/appointments/abc/cancel")
-    assert response.status_code == 400
-    assert response.json()["detail"] == "شناسه نوبت نامعتبر است."
+    assert response.status_code == 422
+    body = response.json()
+    assert body["detail"] == "شناسه نوبت نامعتبر است."
+    assert body["errors"]["appointment_id"] == "شناسه نوبت نامعتبر است."
