@@ -58,7 +58,7 @@ arayeshgah/
 │   │   ├── admin-auth.md    # FRD احراز هویت مدیر و پنل مدیریت (شامل R11)
 │   │   ├── services.md      # FRD خدمات و تعرفه‌ها (شامل R5 و R8)
 │   │   ├── working-hours.md # FRD ساعات کاری، تعطیلی‌ها و مرخصی‌ها (شامل R6 و R7)
-│   │   ├── booking.md       # FRD رزرو نوبت (شامل R1 تا R3 و R10)
+│   │   ├── booking.md       # FRD رزرو نوبت بر اساس مدت خدمات (شامل R3، R5 تا R8 و R10)
 │   │   └── appointments-management.md # FRD مدیریت نوبت‌ها (شامل R4)
 │   └── architecture/
 │       └── overview.md      # نمای کلی معماری و ارتباط بخش‌های سیستم

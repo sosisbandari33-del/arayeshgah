@@ -4,7 +4,8 @@ from pydantic import BaseModel, Field
 class AppointmentCreate(BaseModel):
     customer_name: str = Field(..., description="نام و نام خانوادگی مشتری")
     customer_phone: str = Field(..., description="شماره موبایل مشتری")
-    service_id: int = Field(..., description="شناسه خدمت انتخابی")
+    service_ids: list[int] | None = Field(default=None, description="فهرست شناسه‌های خدمات انتخابی")
+    service_id: int | None = Field(default=None, description="شناسه خدمت انتخابی (سازگاری تک‌خدمت)")
     date: str = Field(..., description="تاریخ نوبت با فرمت YYYY-MM-DD")
     start_time: str = Field(..., description="ساعت نوبت با فرمت HH:MM")
 

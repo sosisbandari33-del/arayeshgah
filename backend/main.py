@@ -36,6 +36,7 @@ MISSING_FIELD_MESSAGES = {
     "customer_name": "نام و نام خانوادگی نمی‌تواند خالی باشد.",
     "customer_phone": "وارد کردن شماره موبایل الزامی است.",
     "service_id": "انتخاب خدمت الزامی است.",
+    "service_ids": "انتخاب حداقل یک خدمت الزامی است.",
     "start_time": "انتخاب ساعت نوبت الزامی است.",
     "appointment_id": "شناسه نوبت الزامی است.",
     "phone": "وارد کردن شماره موبایل الزامی است.",
@@ -52,6 +53,7 @@ INVALID_FIELD_MESSAGES = {
     "customer_name": "نام و نام خانوادگی باید بین ۲ تا ۵۰ کاراکتر باشد.",
     "customer_phone": "شماره موبایل باید ۱۱ رقم بوده و با ۰۹ شروع شود.",
     "service_id": "خدمت انتخابی معتبر نیست.",
+    "service_ids": "خدمت انتخابی معتبر نیست.",
     "date": "فرمت تاریخ نامعتبر است (باید دقیقاً به شکل YYYY-MM-DD باشد).",
     "start_time": "ساعت انتخابی نامعتبر است.",
     "appointment_id": "شناسه نوبت نامعتبر است.",
@@ -97,7 +99,10 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
 
     for err in exc.errors():
         loc = err.get("loc", [])
-        field = str(loc[-1]) if loc else "request"
+        if len(loc) >= 2 and loc[0] in ("body", "query", "path") and isinstance(loc[1], str):
+            field = loc[1]
+        else:
+            field = str(loc[-1]) if loc else "request"
         err_type = err.get("type", "")
 
         if field in field_errors:
@@ -111,6 +116,17 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
             field_errors[field] = INVALID_FIELD_MESSAGES.get(
                 field, "مقدار واردشده نامعتبر است."
             )
+
+    if (
+        request.method == "POST"
+        and request.url.path == "/api/appointments"
+        and isinstance(exc.body, dict)
+        and "service_ids" not in exc.body
+        and "service_id" not in exc.body
+        and "service_id" not in field_errors
+        and "service_ids" not in field_errors
+    ):
+        field_errors["service_id"] = MISSING_FIELD_MESSAGES["service_id"]
 
     summary = next(iter(field_errors.values()), "داده‌های ورودی نامعتبر است.")
     return JSONResponse(

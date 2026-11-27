@@ -22,7 +22,10 @@ function CancelAppointmentModal({ appointment, loading, error, onClose, onConfir
           <p>آیا از لغو نوبت زیر اطمینان دارید؟</p>
           <div className="confirm-details">
             <p><strong>مشتری:</strong> {appointment.customer_name}</p>
-            <p><strong>ساعت:</strong> {appointment.start_time}</p>
+            <p>
+              <strong>ساعت:</strong> {appointment.start_time}
+              {appointment.end_time ? ` تا ${appointment.end_time}` : ''}
+            </p>
             <p><strong>خدمت:</strong> {appointment.service_name}</p>
             <p><strong>تاریخ:</strong> {appointment.date}</p>
           </div>

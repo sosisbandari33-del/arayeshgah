@@ -20,6 +20,13 @@ export function normalizePhone(phone) {
 }
 
 /**
+ * تبدیل ارقام انگلیسی در متن یا عدد به ارقام فارسی
+ */
+export function toPersianDigits(value) {
+  return String(value ?? '').replace(/\d/g, (digit) => PERSIAN_DIGITS[Number(digit)])
+}
+
+/**
  * قالب‌بندی عدد قیمت با جداکننده و ارقام فارسی
  */
 export function formatPrice(price) {
