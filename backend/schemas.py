@@ -10,6 +10,11 @@ class AppointmentCreate(BaseModel):
     start_time: str = Field(..., description="ساعت نوبت با فرمت HH:MM")
 
 
+class AppointmentTrackingRequest(BaseModel):
+    customer_phone: str = Field(..., description="شماره موبایل مشتری")
+    tracking_code: str = Field(..., description="کد پیگیری ۶ رقمی نوبت")
+
+
 class AdminLoginRequest(BaseModel):
     phone: str = Field(..., description="شماره موبایل مدیر")
     password: str = Field(..., description="رمز عبور مدیر")

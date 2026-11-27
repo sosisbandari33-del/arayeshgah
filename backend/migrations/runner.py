@@ -4,6 +4,7 @@ from migrations import (
     m003_add_service_is_active,
     m004_working_hours_and_time_offs,
     m005_multi_service_appointments,
+    m006_tracking_code_and_cancel_deadline,
 )
 
 MIGRATIONS = [
@@ -12,6 +13,7 @@ MIGRATIONS = [
     (m003_add_service_is_active.VERSION, m003_add_service_is_active.upgrade),
     (m004_working_hours_and_time_offs.VERSION, m004_working_hours_and_time_offs.upgrade),
     (m005_multi_service_appointments.VERSION, m005_multi_service_appointments.upgrade),
+    (m006_tracking_code_and_cancel_deadline.VERSION, m006_tracking_code_and_cancel_deadline.upgrade),
 ]
 
 

@@ -32,6 +32,12 @@ function Header({ onEnsureServices }) {
             </Link>
           )}
 
+          {pathname !== '/tracking' && (
+            <Link to="/tracking" className="btn btn-header-secondary">
+              🔍 پیگیری نوبت
+            </Link>
+          )}
+
           {!isAdminSection && (
             <Link to="/admin/appointments" className="btn btn-header-outline">
               📋 پنل مدیریت

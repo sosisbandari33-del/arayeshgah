@@ -43,6 +43,241 @@
   gap: 1.35rem;
 }
 
+/* نوار مراحل ۴گانه ویزارد */
+.wizard-stepper {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 1.25rem 0;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.5rem;
+}
+
+.wizard-step {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.6rem 0.65rem;
+  border-radius: var(--radius-element);
+  background-color: #f8fafc;
+  border: 1px solid var(--border-subtle);
+  color: var(--text-muted);
+  font-size: 0.84rem;
+  font-weight: 600;
+}
+
+.wizard-step.current {
+  background-color: var(--primary-light);
+  border-color: var(--primary);
+  color: var(--primary);
+  font-weight: 800;
+}
+
+.wizard-step.done {
+  background-color: var(--success-bg);
+  border-color: var(--success-border);
+  color: var(--success);
+}
+
+.wizard-step-num {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #e2e8f0;
+  color: var(--text-heading);
+  font-size: 0.8rem;
+  font-weight: 800;
+  flex-shrink: 0;
+}
+
+.wizard-step.current .wizard-step-num {
+  background-color: var(--primary);
+  color: #ffffff;
+}
+
+.wizard-step.done .wizard-step-num {
+  background-color: var(--success);
+  color: #ffffff;
+}
+
+.wizard-step-label {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* نوار خلاصه انتخاب زنده در هر قدم */
+.live-selection-bar {
+  background-color: #f8fafc;
+  border: 1px solid var(--primary-border);
+  border-right: 4px solid var(--primary);
+  border-radius: var(--radius-element);
+  padding: 0.85rem 1rem;
+  margin-bottom: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.live-selection-main {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.9rem;
+}
+
+.live-selection-title {
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.live-selection-services {
+  color: var(--text-heading);
+  font-weight: 800;
+  word-break: break-word;
+}
+
+.live-selection-empty {
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+.live-selection-metrics {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.1rem;
+  font-size: 0.87rem;
+  color: #1e3a8a;
+  padding-top: 0.35rem;
+  border-top: 1px dashed var(--border-subtle);
+}
+
+.wizard-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 1.15rem;
+}
+
+.wizard-panel-title {
+  margin: 0;
+  font-size: 1.08rem;
+  font-weight: 800;
+  color: var(--text-heading);
+}
+
+.wizard-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.85rem;
+  margin-top: 0.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border-subtle);
+  flex-wrap: wrap;
+}
+
+.wizard-actions.single-end {
+  justify-content: flex-end;
+}
+
+.wizard-actions .btn-submit {
+  width: auto;
+  padding: 0.78rem 1.5rem;
+}
+
+/* کارت خلاصه قدم ۴ (تأیید نهایی) */
+.confirm-summary-card {
+  background-color: #f8fafc;
+  border: 1px solid var(--border-medium);
+  border-radius: var(--radius-element);
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.confirm-summary-heading {
+  display: block;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  margin-bottom: 0.55rem;
+}
+
+.confirm-services-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.confirm-services-list li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.55rem 0.75rem;
+  background-color: #ffffff;
+  border: 1px solid var(--border-subtle);
+  border-radius: 8px;
+  font-size: 0.9rem;
+  word-break: break-word;
+}
+
+.confirm-summary-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  padding-top: 0.75rem;
+  border-top: 1px dashed var(--border-medium);
+}
+
+.confirm-summary-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.93rem;
+  color: var(--text-body);
+}
+
+.confirm-summary-row.highlight {
+  color: var(--primary);
+  font-size: 1rem;
+}
+
+/* نمایش برجسته کد پیگیری ۶ رقمی در صفحه رسید */
+.tracking-code-highlight {
+  background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+  border: 2px solid var(--primary);
+  border-radius: var(--radius-element);
+  padding: 1rem 1.25rem;
+  margin-bottom: 1.35rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.tracking-code-caption {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: #1e40af;
+}
+
+.tracking-code-digits {
+  font-size: 2rem;
+  font-weight: 900;
+  letter-spacing: 0.22em;
+  color: var(--brand-dark);
+  direction: ltr;
+}
+
 .form-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -430,6 +665,20 @@
   .form-row,
   .service-multi-grid {
     grid-template-columns: 1fr;
+  }
+
+  .wizard-stepper {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .wizard-actions {
+    flex-direction: column-reverse;
+    align-items: stretch;
+  }
+
+  .wizard-actions .btn,
+  .wizard-actions .btn-submit {
+    width: 100%;
   }
 
   .booking-card {

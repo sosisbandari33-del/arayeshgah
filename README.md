@@ -38,7 +38,8 @@ arayeshgah/
 │   │   │   ├── auth/            # فیچر ورود و پنل مدیریت (AdminLoginPage, RequireAdminAuth, AdminLayout)
 │   │   │   ├── services/        # فیچر خدمات مشتری و مدیر (ServicesPage, AdminServicesPage, ServiceCard, servicesApi)
 │   │   │   ├── schedule/        # فیچر ساعات کاری، تعطیلی‌ها و مرخصی‌ها (AdminSchedulePage, scheduleApi, schedule.css)
-│   │   │   ├── booking/         # فیچر رزرو نوبت (BookingPage, BookingReceipt, bookingApi, booking.css)
+│   │   │   ├── booking/         # فیچر ویزارد ۴ مرحله‌ای رزرو و خلاصه کد پیگیری (BookingPage, BookingReceipt, bookingApi)
+│   │   │   ├── tracking/        # فیچر پیگیری و لغو نوبت مشتری با کد ۶ رقمی (TrackingPage, trackingApi, tracking.css)
 │   │   │   └── appointments/    # فیچر مدیریت نوبت‌ها (AppointmentsPage, CancelAppointmentModal, appointmentsApi)
 │   │   ├── components/          # پوسته‌ی مشترک صفحه (Header, Footer)
 │   │   ├── utils/               # توابع کمکی تاریخ محلی و ارقام فارسی
@@ -58,7 +59,8 @@ arayeshgah/
 │   │   ├── admin-auth.md    # FRD احراز هویت مدیر و پنل مدیریت (شامل R11)
 │   │   ├── services.md      # FRD خدمات و تعرفه‌ها (شامل R5 و R8)
 │   │   ├── working-hours.md # FRD ساعات کاری، تعطیلی‌ها و مرخصی‌ها (شامل R6 و R7)
-│   │   ├── booking.md       # FRD رزرو نوبت بر اساس مدت خدمات (شامل R3، R5 تا R8 و R10)
+│   │   ├── booking.md       # FRD رزرو ۴ مرحله‌ای نوبت بر اساس مدت خدمات (شامل R3، R5 تا R8 و R10)
+│   │   ├── appointment-tracking.md # FRD پیگیری و لغو نوبت مشتری با کد ۶ رقمی (شامل R9)
 │   │   └── appointments-management.md # FRD مدیریت نوبت‌ها (شامل R4)
 │   └── architecture/
 │       └── overview.md      # نمای کلی معماری و ارتباط بخش‌های سیستم

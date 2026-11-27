@@ -1,12 +1,14 @@
 from fastapi import APIRouter, Depends, Query
 
 from routes.auth import require_admin
-from schemas import AppointmentCreate
+from schemas import AppointmentCreate, AppointmentTrackingRequest
 from services.appointments import (
     book_appointment_logic,
+    cancel_appointment_by_customer_logic,
     cancel_appointment_logic,
     get_daily_slots_logic,
     list_appointments_logic,
+    lookup_appointment_by_tracking_logic,
 )
 
 router = APIRouter(prefix="/api", tags=["appointments"])
@@ -29,6 +31,22 @@ def book_appointment(appointment_data: AppointmentCreate):
         service_id=appointment_data.service_id,
         date_str=appointment_data.date,
         start_time=appointment_data.start_time,
+    )
+
+
+@router.post("/appointments/lookup")
+def lookup_appointment_by_tracking(payload: AppointmentTrackingRequest):
+    return lookup_appointment_by_tracking_logic(
+        customer_phone=payload.customer_phone,
+        tracking_code=payload.tracking_code,
+    )
+
+
+@router.post("/appointments/customer-cancel")
+def cancel_appointment_by_customer(payload: AppointmentTrackingRequest):
+    return cancel_appointment_by_customer_logic(
+        customer_phone=payload.customer_phone,
+        tracking_code=payload.tracking_code,
     )
 
 

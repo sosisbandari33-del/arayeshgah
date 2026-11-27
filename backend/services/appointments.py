@@ -1,4 +1,4 @@
-from datetime import datetime, date as dt_date, time as dt_time
+from datetime import datetime, date as dt_date, time as dt_time, timedelta
 import re
 import sqlite3
 
@@ -7,7 +7,9 @@ from database import (
     create_appointment,
     get_active_appointment_intervals,
     get_appointment_by_id,
+    get_appointment_by_phone_and_tracking,
     get_appointments_by_date,
+    get_cancel_deadline_hours,
     get_services_by_ids,
 )
 from services.errors import (
@@ -26,6 +28,12 @@ from services.schedule import (
 
 DATE_PATTERN = re.compile(r"^\d{4}-\d{2}-\d{2}$")
 PHONE_PATTERN = re.compile(r"^09\d{9}$")
+TRACKING_CODE_PATTERN = re.compile(r"^\d{6}$")
+
+
+def _now() -> datetime:
+    """نقطه‌ی متمرکز خواندن زمان فعلی سیستم (قابل بازنویسی در تست‌های زمان‌محور)"""
+    return datetime.now()
 
 
 def normalize_digits(text: str) -> str:
@@ -147,7 +155,7 @@ def get_daily_slots_logic(date_str: str, service_ids_param: str | None = None):
         work_end_min = day_ctx["work_end_min"]
         partial_leaves = day_ctx["partial_leaves"]
         active_intervals = get_active_appointment_intervals(normalized_date)
-        now = datetime.now()
+        now = _now()
 
         fitting_slots = []
         for slot_min in day_ctx["candidate_starts"]:
@@ -200,7 +208,7 @@ def get_daily_slots_logic(date_str: str, service_ids_param: str | None = None):
         }
 
     active_intervals = get_active_appointment_intervals(normalized_date)
-    now = datetime.now()
+    now = _now()
     partial_leaves = day_ctx["partial_leaves"]
 
     slots_status = []
@@ -345,7 +353,7 @@ def book_appointment_logic(
     app_datetime = datetime.combine(app_date, dt_time(hour, minute))
 
     # قانون R3: عدم ثبت نوبت در گذشته
-    if app_datetime < datetime.now():
+    if app_datetime < _now():
         raise ValidationDomainError("امکان ثبت نوبت برای زمان‌های گذشته وجود ندارد.")
 
     # قوانین R5 و R8: عدم همپوشانی بازه‌ی [slot_min, end_min) با هیچ نوبت فعال دیگر
@@ -410,4 +418,103 @@ def cancel_appointment_logic(appointment_id: int):
         "success": True,
         "message": "نوبت با موفقیت لغو شد و بازه زمانی آن آزاد گردید.",
         "appointment": updated,
+    }
+
+
+def _validate_tracking_credentials(
+    customer_phone: str, tracking_code: str
+) -> tuple[str, str]:
+    field_errors: dict[str, str] = {}
+
+    normalized_phone = normalize_digits((customer_phone or "").strip())
+    clean_phone = re.sub(r"[\s-]+", "", normalized_phone)
+    if not clean_phone:
+        field_errors["customer_phone"] = "وارد کردن شماره موبایل الزامی است."
+    elif not PHONE_PATTERN.fullmatch(clean_phone):
+        field_errors["customer_phone"] = "شماره موبایل باید ۱۱ رقم بوده و با ۰۹ شروع شود."
+
+    clean_code = normalize_digits((tracking_code or "").strip())
+    clean_code = re.sub(r"\s+", "", clean_code)
+    if not clean_code:
+        field_errors["tracking_code"] = "وارد کردن کد پیگیری الزامی است."
+    elif not TRACKING_CODE_PATTERN.fullmatch(clean_code):
+        field_errors["tracking_code"] = "کد پیگیری باید یک کد ۶ رقمی عددی باشد."
+
+    if field_errors:
+        raise FieldValidationError(field_errors)
+
+    return clean_phone, clean_code
+
+
+def _evaluate_customer_cancel_policy(
+    appt: dict, now_dt: datetime, deadline_hours: int
+) -> tuple[bool, str | None]:
+    """بررسی قانون R9: امکان لغو نوبت توسط مشتری فقط تا مهلت تعیین‌شده پیش از شروع نوبت"""
+    if appt["status"] == "لغو شده":
+        return False, "این نوبت قبلاً لغو شده است."
+
+    appt_date = datetime.strptime(appt["date"], "%Y-%m-%d").date()
+    hour, minute = map(int, appt["start_time"].split(":"))
+    appt_dt = datetime.combine(appt_date, dt_time(hour, minute))
+
+    if now_dt >= appt_dt:
+        return False, "زمان این نوبت گذشته است و امکان لغو آن وجود ندارد."
+
+    if appt_dt - now_dt < timedelta(hours=deadline_hours):
+        return (
+            False,
+            f"مهلت لغو نوبت (تا {deadline_hours} ساعت پیش از شروع نوبت) به پایان رسیده است.",
+        )
+
+    return True, None
+
+
+def lookup_appointment_by_tracking_logic(customer_phone: str, tracking_code: str):
+    """جستجوی فقط همان نوبت متعلق به شماره موبایل و کد پیگیری ۶ رقمی (قانون R9)"""
+    clean_phone, clean_code = _validate_tracking_credentials(
+        customer_phone, tracking_code
+    )
+    appt = get_appointment_by_phone_and_tracking(clean_phone, clean_code)
+    if not appt:
+        raise NotFoundDomainError("نوبتی با این شماره موبایل و کد پیگیری یافت نشد.")
+
+    deadline_hours = get_cancel_deadline_hours()
+    can_cancel, cancel_reason = _evaluate_customer_cancel_policy(
+        appt, _now(), deadline_hours
+    )
+
+    return {
+        "appointment": appt,
+        "can_cancel": can_cancel,
+        "cancel_reason": cancel_reason,
+        "cancel_deadline_hours": deadline_hours,
+    }
+
+
+def cancel_appointment_by_customer_logic(customer_phone: str, tracking_code: str):
+    """لغو نوبت توسط مشتری در صورت نرسیدن به مهلت لغو (قانون R9 و R4)"""
+    clean_phone, clean_code = _validate_tracking_credentials(
+        customer_phone, tracking_code
+    )
+    appt = get_appointment_by_phone_and_tracking(clean_phone, clean_code)
+    if not appt:
+        raise NotFoundDomainError("نوبتی با این شماره موبایل و کد پیگیری یافت نشد.")
+
+    deadline_hours = get_cancel_deadline_hours()
+    can_cancel, cancel_reason = _evaluate_customer_cancel_policy(
+        appt, _now(), deadline_hours
+    )
+    if not can_cancel:
+        raise ValidationDomainError(
+            cancel_reason or "امکان لغو این نوبت وجود ندارد."
+        )
+
+    updated = cancel_appointment(appt["id"])
+    return {
+        "success": True,
+        "message": "نوبت شما با موفقیت لغو شد و بازه زمانی آن آزاد گردید.",
+        "appointment": updated,
+        "can_cancel": False,
+        "cancel_reason": "این نوبت قبلاً لغو شده است.",
+        "cancel_deadline_hours": deadline_hours,
     }

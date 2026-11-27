@@ -13,7 +13,8 @@
 | وضعیت فعلی ورود مدیر، توکن دسترسی و حفاظت پنل مدیریت | [docs/features/admin-auth.md](features/admin-auth.md) |
 | وضعیت فعلی نمایش خدمات به مشتری و مدیریت خدمات در پنل صاحب کار | [docs/features/services.md](features/services.md) |
 | وضعیت فعلی ساعات کاری هفتگی، تعطیلی روز خاص و مرخصی چندساعته (قوانین R6 و R7) | [docs/features/working-hours.md](features/working-hours.md) |
-| وضعیت فعلی رزرو نوبت (به‌روزرسانی هم‌زمان با تسک‌های سطح ۲) | [docs/features/booking.md](features/booking.md) |
+| وضعیت فعلی رزرو ۴ مرحله‌ای نوبت و صدور کد پیگیری ۶ رقمی (قوانین R3، R5 تا R8 و R10) | [docs/features/booking.md](features/booking.md) |
+| وضعیت فعلی پیگیری و لغو نوبت توسط مشتری با کد پیگیری ۶ رقمی و مهلت لغو (قانون R9) | [docs/features/appointment-tracking.md](features/appointment-tracking.md) |
 | وضعیت فعلی پنل مدیریت و لغو نوبت (محافظت‌شده با ورود مدیر) | [docs/features/appointments-management.md](features/appointments-management.md) |
 | نصب، راه‌اندازی روی کامپیوتر تازه و اجرای تست‌ها | [README.md](../README.md) |
 

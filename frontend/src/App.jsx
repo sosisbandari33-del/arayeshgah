@@ -7,6 +7,7 @@ import ServicesPage from './features/services/ServicesPage'
 import AdminServicesPage from './features/services/AdminServicesPage'
 import AdminSchedulePage from './features/schedule/AdminSchedulePage'
 import BookingPage from './features/booking/BookingPage'
+import TrackingPage from './features/tracking/TrackingPage'
 import AppointmentsPage from './features/appointments/AppointmentsPage'
 import AdminLoginPage from './features/auth/AdminLoginPage'
 import AdminLayout from './features/auth/AdminLayout'
@@ -82,6 +83,7 @@ function App() {
             />
           }
         />
+        <Route path="/tracking" element={<TrackingPage />} />
         <Route path="/admin/login" element={<AdminLoginPage />} />
         <Route
           path="/admin"
