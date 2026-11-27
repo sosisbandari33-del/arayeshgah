@@ -215,6 +215,22 @@
   margin-bottom: 1.2rem;
 }
 
+.input-error {
+  border-color: var(--danger) !important;
+  background-color: var(--danger-bg) !important;
+}
+
+.input-error:focus {
+  box-shadow: 0 0 0 3px rgba(185, 28, 28, 0.15) !important;
+}
+
+.field-error {
+  color: var(--danger);
+  font-size: 0.84rem;
+  font-weight: 600;
+  margin: 0.2rem 0 0 0;
+}
+
 .status-box {
   padding: 2.5rem;
   border-radius: var(--radius-card);

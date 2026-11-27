@@ -1,21 +1,62 @@
-export function Input({ id, label, hint, wrapperClassName = 'form-group', ...props }) {
+export function Input({
+  id,
+  label,
+  hint,
+  error,
+  className = '',
+  wrapperClassName = 'form-group',
+  ...props
+}) {
+  const inputClass = [className, error ? 'input-error' : ''].filter(Boolean).join(' ')
+
   return (
     <div className={wrapperClassName}>
       {label && <label htmlFor={id}>{label}</label>}
-      <input id={id} {...props} />
-      {hint && <p className="field-hint">{hint}</p>}
+      <input
+        id={id}
+        className={inputClass || undefined}
+        aria-invalid={error ? 'true' : undefined}
+        {...props}
+      />
+      {error && (
+        <p className="field-error" role="alert">
+          {error}
+        </p>
+      )}
+      {!error && hint && <p className="field-hint">{hint}</p>}
     </div>
   )
 }
 
-export function Select({ id, label, hint, children, wrapperClassName = 'form-group', ...props }) {
+export function Select({
+  id,
+  label,
+  hint,
+  error,
+  className = '',
+  children,
+  wrapperClassName = 'form-group',
+  ...props
+}) {
+  const selectClass = [className, error ? 'input-error' : ''].filter(Boolean).join(' ')
+
   return (
     <div className={wrapperClassName}>
       {label && <label htmlFor={id}>{label}</label>}
-      <select id={id} {...props}>
+      <select
+        id={id}
+        className={selectClass || undefined}
+        aria-invalid={error ? 'true' : undefined}
+        {...props}
+      >
         {children}
       </select>
-      {hint && <p className="field-hint">{hint}</p>}
+      {error && (
+        <p className="field-error" role="alert">
+          {error}
+        </p>
+      )}
+      {!error && hint && <p className="field-hint">{hint}</p>}
     </div>
   )
 }

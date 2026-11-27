@@ -43,17 +43,21 @@ def test_get_slots_marks_past_date_unavailable(client, past_date):
     assert all(slot["is_past"] and not slot["is_available"] for slot in slots)
 
 
-def test_get_slots_error_missing_date_returns_400(client):
+def test_get_slots_error_missing_date_returns_422(client):
     response = client.get("/api/slots")
-    assert response.status_code == 400
-    assert response.json()["detail"] == "ارسال پارامتر تاریخ الزامی است."
+    assert response.status_code == 422
+    body = response.json()
+    assert body["detail"] == "ارسال پارامتر تاریخ الزامی است."
+    assert body["errors"]["date"] == "ارسال پارامتر تاریخ الزامی است."
 
 
-@pytest.mark.parametrize("bad_date", ["2027-5-7", "invalid-date", "2027-02-30"])
-def test_get_slots_error_invalid_date_format_returns_400(client, bad_date):
+@pytest.mark.parametrize("bad_date", ["", "2027-5-7", "invalid-date", "2027-02-30"])
+def test_get_slots_error_invalid_date_format_returns_422(client, bad_date):
     response = client.get("/api/slots", params={"date": bad_date})
-    assert response.status_code == 400
-    assert isinstance(response.json()["detail"], str)
+    assert response.status_code == 422
+    body = response.json()
+    assert "date" in body["errors"]
+    assert isinstance(body["errors"]["date"], str)
 
 
 def test_book_appointment_success_with_persian_digits_and_local_created_at(client, future_date):
@@ -119,8 +123,83 @@ def test_book_appointment_error_when_date_in_past(client, past_date):
     assert "گذشته" in response.json()["detail"]
 
 
-@pytest.mark.parametrize("bad_time", ["09:30", "10:15", "20:00"])
-def test_book_appointment_error_outside_working_hours_r1(client, future_date, bad_time):
+@pytest.mark.parametrize("bad_name", ["", "     ", "آ", "ب" * 51])
+def test_book_appointment_error_invalid_name_r10_returns_422(client, future_date, bad_name):
+    response = client.post(
+        "/api/appointments",
+        json={
+            "customer_name": bad_name,
+            "customer_phone": "09121234567",
+            "service_id": 1,
+            "date": future_date,
+            "start_time": "15:30",
+        },
+    )
+    assert response.status_code == 422
+    body = response.json()
+    assert "customer_name" in body["errors"]
+    assert "نام" in body["errors"]["customer_name"]
+
+
+@pytest.mark.parametrize(
+    "bad_phone",
+    ["", "   ", "0912345", "091212345678", "08121234567", "0912abc3456789"],
+)
+def test_book_appointment_error_invalid_phone_r10_returns_422(client, future_date, bad_phone):
+    response = client.post(
+        "/api/appointments",
+        json={
+            "customer_name": "سارا احمدی",
+            "customer_phone": bad_phone,
+            "service_id": 1,
+            "date": future_date,
+            "start_time": "15:30",
+        },
+    )
+    assert response.status_code == 422
+    body = response.json()
+    assert "customer_phone" in body["errors"]
+    assert "موبایل" in body["errors"]["customer_phone"]
+
+
+@pytest.mark.parametrize("bad_service_id", [999, -1, "abc"])
+def test_book_appointment_error_invalid_service_returns_422(client, future_date, bad_service_id):
+    response = client.post(
+        "/api/appointments",
+        json={
+            "customer_name": "علی رضایی",
+            "customer_phone": "09121234567",
+            "service_id": bad_service_id,
+            "date": future_date,
+            "start_time": "12:00",
+        },
+    )
+    assert response.status_code == 422
+    body = response.json()
+    assert "service_id" in body["errors"]
+    assert "خدمت" in body["errors"]["service_id"]
+
+
+@pytest.mark.parametrize("bad_date", ["", "2027-5-7", "2027-02-30", "invalid-date"])
+def test_book_appointment_error_invalid_date_returns_422(client, bad_date):
+    response = client.post(
+        "/api/appointments",
+        json={
+            "customer_name": "محمد کریمی",
+            "customer_phone": "09129876543",
+            "service_id": 1,
+            "date": bad_date,
+            "start_time": "11:00",
+        },
+    )
+    assert response.status_code == 422
+    body = response.json()
+    assert "date" in body["errors"]
+    assert "تاریخ" in body["errors"]["date"]
+
+
+@pytest.mark.parametrize("bad_time", ["", "09:30", "10:15", "20:00"])
+def test_book_appointment_error_invalid_time_returns_422(client, future_date, bad_time):
     response = client.post(
         "/api/appointments",
         json={
@@ -131,60 +210,46 @@ def test_book_appointment_error_outside_working_hours_r1(client, future_date, ba
             "start_time": bad_time,
         },
     )
-    assert response.status_code == 400
+    assert response.status_code == 422
+    body = response.json()
+    assert "start_time" in body["errors"]
+    assert "ساعت" in body["errors"]["start_time"]
 
 
-def test_book_appointment_error_non_padded_date_rejected(client):
+def test_book_appointment_error_multiple_invalid_fields_returns_all_in_422(client):
     response = client.post(
         "/api/appointments",
         json={
-            "customer_name": "محمد کریمی",
-            "customer_phone": "09129876543",
-            "service_id": 1,
-            "date": "2027-5-7",
-            "start_time": "11:00",
-        },
-    )
-    assert response.status_code == 400
-
-
-def test_book_appointment_error_nonexistent_service_returns_404(client, future_date):
-    response = client.post(
-        "/api/appointments",
-        json={
-            "customer_name": "علی رضایی",
-            "customer_phone": "09121234567",
+            "customer_name": "   ",
+            "customer_phone": "12345",
             "service_id": 999,
-            "date": future_date,
-            "start_time": "12:00",
+            "date": "2027-5-7",
+            "start_time": "09:00",
         },
     )
-    assert response.status_code == 404
+    assert response.status_code == 422
+    errors = response.json()["errors"]
+    assert set(errors.keys()) == {
+        "customer_name",
+        "customer_phone",
+        "service_id",
+        "date",
+        "start_time",
+    }
+    assert all(isinstance(msg, str) and len(msg) > 0 for msg in errors.values())
 
 
-@pytest.mark.parametrize(
-    "bad_name,bad_phone",
-    [
-        ("     ", "09121234567"),
-        ("آ", "09121234567"),
-        ("ب" * 51, "09121234567"),
-        ("سارا احمدی", "0912abc3456789"),
-        ("سارا احمدی", "0912345"),
-    ],
-)
-def test_book_appointment_error_invalid_name_or_phone(client, future_date, bad_name, bad_phone):
-    response = client.post(
-        "/api/appointments",
-        json={
-            "customer_name": bad_name,
-            "customer_phone": bad_phone,
-            "service_id": 1,
-            "date": future_date,
-            "start_time": "15:30",
-        },
-    )
-    assert response.status_code == 400
-    assert isinstance(response.json()["detail"], str)
+def test_book_appointment_error_missing_body_fields_returns_all_in_422(client):
+    response = client.post("/api/appointments", json={})
+    assert response.status_code == 422
+    errors = response.json()["errors"]
+    assert set(errors.keys()) == {
+        "customer_name",
+        "customer_phone",
+        "service_id",
+        "date",
+        "start_time",
+    }
 
 
 def test_db_unique_index_prevents_concurrent_double_booking(client, future_date):

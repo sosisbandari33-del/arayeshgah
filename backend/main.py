@@ -10,6 +10,7 @@ from routes.services import router as services_router
 from services.errors import (
     ConflictDomainError,
     DomainError,
+    FieldValidationError,
     NotFoundDomainError,
     ValidationDomainError,
 )
@@ -19,57 +20,67 @@ init_db()
 
 app = FastAPI(title="سیستم نوبت‌دهی آرایشگاه")
 
+MISSING_FIELD_MESSAGES = {
+    "date": "ارسال پارامتر تاریخ الزامی است.",
+    "customer_name": "نام و نام خانوادگی نمی‌تواند خالی باشد.",
+    "customer_phone": "وارد کردن شماره موبایل الزامی است.",
+    "service_id": "انتخاب خدمت الزامی است.",
+    "start_time": "انتخاب ساعت نوبت الزامی است.",
+    "appointment_id": "شناسه نوبت الزامی است.",
+}
+
+INVALID_FIELD_MESSAGES = {
+    "customer_name": "نام و نام خانوادگی باید بین ۲ تا ۵۰ کاراکتر باشد.",
+    "customer_phone": "شماره موبایل باید ۱۱ رقم بوده و با ۰۹ شروع شود.",
+    "service_id": "خدمت انتخابی معتبر نیست.",
+    "date": "فرمت تاریخ نامعتبر است (باید دقیقاً به شکل YYYY-MM-DD باشد).",
+    "start_time": "ساعت انتخابی نامعتبر است.",
+    "appointment_id": "شناسه نوبت نامعتبر است.",
+}
+
 
 @app.exception_handler(DomainError)
 async def domain_exception_handler(request: Request, exc: DomainError):
     """ترجمه‌ی خطاهای دامنه‌ی کسب‌وکار به پاسخ HTTP استاندارد"""
+    if isinstance(exc, FieldValidationError):
+        return JSONResponse(
+            status_code=422,
+            content={"detail": exc.message, "errors": exc.errors},
+        )
     if isinstance(exc, NotFoundDomainError):
-        status_code = 404
-    elif isinstance(exc, (ValidationDomainError, ConflictDomainError)):
-        status_code = 400
-    else:
-        status_code = 400
-    return JSONResponse(status_code=status_code, content={"detail": exc.message})
+        return JSONResponse(status_code=404, content={"detail": exc.message})
+    if isinstance(exc, (ValidationDomainError, ConflictDomainError)):
+        return JSONResponse(status_code=400, content={"detail": exc.message})
+    return JSONResponse(status_code=400, content={"detail": exc.message})
 
 
 @app.exception_handler(RequestValidationError)
 async def validation_exception_handler(request: Request, exc: RequestValidationError):
-    """مدیریت خطاهای اعتبارسنجی ورودی Pydantic و بازگرداندن پیام فارسی شفاف"""
-    errors = exc.errors()
-    msg = "داده‌های ورودی نامعتبر است."
-    if errors:
-        first = errors[0]
-        loc = first.get("loc", [])
-        field = loc[-1] if loc else ""
-        err_type = first.get("type", "")
+    """مدیریت خطاهای اعتبارسنجی Pydantic و بازگرداندن کد 422 با پیام فارسی برای هر فیلد"""
+    field_errors: dict[str, str] = {}
+
+    for err in exc.errors():
+        loc = err.get("loc", [])
+        field = str(loc[-1]) if loc else "request"
+        err_type = err.get("type", "")
+
+        if field in field_errors:
+            continue
 
         if err_type == "missing":
-            missing_messages = {
-                "date": "ارسال پارامتر تاریخ الزامی است.",
-                "customer_name": "وارد کردن نام و نام خانوادگی الزامی است.",
-                "customer_phone": "وارد کردن شماره موبایل الزامی است.",
-                "service_id": "انتخاب خدمت الزامی است.",
-                "start_time": "انتخاب ساعت نوبت الزامی است.",
-            }
-            msg = missing_messages.get(field, "برخی فیلدهای الزامی ارسال نشده‌اند.")
-        elif field == "customer_name":
-            msg = "نام و نام خانوادگی باید بین ۲ تا ۵۰ کاراکتر باشد و نمی‌تواند فقط فاصله باشد."
-        elif field == "customer_phone":
-            msg = "شماره موبایل نامعتبر است."
-        elif field == "service_id":
-            msg = "خدمت انتخابی نامعتبر است."
-        elif field == "date":
-            msg = "فرمت تاریخ نامعتبر است (باید YYYY-MM-DD باشد)."
-        elif field == "start_time":
-            msg = "ساعت انتخابی نامعتبر است."
-        elif field == "appointment_id":
-            msg = "شناسه نوبت نامعتبر است."
-        elif "min_length" in err_type:
-            msg = f"طول فیلد {field} کمتر از حد مجاز است."
-        elif "max_length" in err_type:
-            msg = f"طول فیلد {field} بیشتر از حد مجاز است."
+            field_errors[field] = MISSING_FIELD_MESSAGES.get(
+                field, "این فیلد الزامی است."
+            )
+        else:
+            field_errors[field] = INVALID_FIELD_MESSAGES.get(
+                field, "مقدار واردشده نامعتبر است."
+            )
 
-    return JSONResponse(status_code=400, content={"detail": msg})
+    summary = next(iter(field_errors.values()), "داده‌های ورودی نامعتبر است.")
+    return JSONResponse(
+        status_code=422,
+        content={"detail": summary, "errors": field_errors},
+    )
 
 
 # تنظیمات استاندارد CORS برای دسترسی فرانت‌اند محلی

@@ -1,11 +1,19 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { Alert, Button, Card, Input, Select } from '../../ui'
-import { getLocalDateString } from '../../utils/date'
+import { getLocalDateString, isValidDateString } from '../../utils/date'
 import { normalizePhone, formatPrice } from '../../utils/persian'
 import { fetchSlots, createAppointment } from './bookingApi'
 import BookingReceipt from './BookingReceipt'
 import './booking.css'
+
+const BOOKING_FORM_FIELDS = new Set([
+  'customer_name',
+  'customer_phone',
+  'service_id',
+  'date',
+  'start_time',
+])
 
 function BookingPage({ services, servicesLoading, servicesError, onRetryServices }) {
   const navigate = useNavigate()
@@ -25,6 +33,7 @@ function BookingPage({ services, servicesLoading, servicesError, onRetryServices
   const [slotsRefreshKey, setSlotsRefreshKey] = useState(0)
   const [submitting, setSubmitting] = useState(false)
   const [errorMessage, setErrorMessage] = useState(null)
+  const [fieldErrors, setFieldErrors] = useState({})
   const [successData, setSuccessData] = useState(null)
 
   const hasValidSelectedService = services.some((s) => String(s.id) === String(selectedServiceId))
@@ -60,10 +69,21 @@ function BookingPage({ services, servicesLoading, servicesError, onRetryServices
     }
   }, [selectedDate, slotsRefreshKey])
 
+  const clearFieldError = (field) => {
+    setFieldErrors((prev) => {
+      if (!prev[field]) return prev
+      const next = { ...prev }
+      delete next[field]
+      return next
+    })
+  }
+
   const handleDateChange = (newDate) => {
     setSelectedDate(newDate)
     setSelectedTime('')
     setSlotError(null)
+    clearFieldError('date')
+    clearFieldError('start_time')
     if (!newDate) {
       setSlots([])
       setLoadingSlots(false)
@@ -80,42 +100,51 @@ function BookingPage({ services, servicesLoading, servicesError, onRetryServices
     setSlotsRefreshKey((prev) => prev + 1)
   }
 
+  const validateClientForm = () => {
+    const nextErrors = {}
+
+    const cleanName = customerName.trim()
+    if (!cleanName) {
+      nextErrors.customer_name = 'نام و نام خانوادگی نمی‌تواند خالی باشد.'
+    } else if (cleanName.length < 2 || cleanName.length > 50) {
+      nextErrors.customer_name = 'نام و نام خانوادگی باید بین ۲ تا ۵۰ کاراکتر باشد.'
+    }
+
+    const cleanPhone = normalizePhone(customerPhone)
+    if (!cleanPhone) {
+      nextErrors.customer_phone = 'وارد کردن شماره موبایل الزامی است.'
+    } else if (!/^09\d{9}$/.test(cleanPhone)) {
+      nextErrors.customer_phone = 'شماره موبایل باید ۱۱ رقم بوده و با ۰۹ شروع شود.'
+    }
+
+    if (!effectiveServiceId) {
+      nextErrors.service_id = 'انتخاب خدمت الزامی است.'
+    }
+
+    if (!selectedDate) {
+      nextErrors.date = 'وارد کردن تاریخ الزامی است.'
+    } else if (!isValidDateString(selectedDate)) {
+      nextErrors.date = 'فرمت تاریخ نامعتبر است (باید دقیقاً به شکل YYYY-MM-DD باشد).'
+    }
+
+    if (!selectedTime) {
+      nextErrors.start_time = 'انتخاب ساعت نوبت الزامی است.'
+    }
+
+    return { nextErrors, cleanName, cleanPhone }
+  }
+
   const handleSubmit = (e) => {
     e.preventDefault()
     setErrorMessage(null)
 
-    const cleanName = customerName.trim()
-    if (!cleanName || cleanName.length < 2) {
-      setErrorMessage('نام و نام خانوادگی باید حداقل ۲ کاراکتر باشد و نمی‌تواند فقط فاصله باشد.')
+    const { nextErrors, cleanName, cleanPhone } = validateClientForm()
+    if (Object.keys(nextErrors).length > 0) {
+      setFieldErrors(nextErrors)
       return
     }
 
-    if (cleanName.length > 50) {
-      setErrorMessage('نام و نام خانوادگی نمی‌تواند بیشتر از ۵۰ کاراکتر باشد.')
-      return
-    }
-
-    const cleanPhone = normalizePhone(customerPhone)
-    if (!/^09\d{9}$/.test(cleanPhone)) {
-      setErrorMessage('شماره موبایل باید ۱۱ رقم بوده، با ۰۹ شروع شود و شامل حروف نباشد.')
-      return
-    }
-
-    if (!effectiveServiceId) {
-      setErrorMessage('لطفاً نوع خدمت را انتخاب کنید.')
-      return
-    }
-
-    if (!selectedDate) {
-      setErrorMessage('لطفاً تاریخ نوبت را انتخاب کنید.')
-      return
-    }
-
-    if (!selectedTime) {
-      setErrorMessage('لطفاً یکی از ساعت‌های آزاد را انتخاب کنید.')
-      return
-    }
-
+    setFieldErrors({})
     setSubmitting(true)
 
     createAppointment({
@@ -127,11 +156,24 @@ function BookingPage({ services, servicesLoading, servicesError, onRetryServices
     })
       .then((data) => {
         setSuccessData(data.appointment)
+        setFieldErrors({})
         setSubmitting(false)
       })
       .catch((err) => {
-        setErrorMessage(err.message)
         setSubmitting(false)
+
+        if (err.fieldErrors && Object.keys(err.fieldErrors).length > 0) {
+          setFieldErrors(err.fieldErrors)
+          const hasUnmappedField = Object.keys(err.fieldErrors).some(
+            (key) => !BOOKING_FORM_FIELDS.has(key)
+          )
+          if (hasUnmappedField) {
+            setErrorMessage(err.message)
+          }
+          return
+        }
+
+        setErrorMessage(err.message)
         if (err.isServerResponse && selectedDate) {
           setSelectedTime('')
           setLoadingSlots(true)
@@ -149,6 +191,7 @@ function BookingPage({ services, servicesLoading, servicesError, onRetryServices
     setSelectedDate(nextDate)
     setSelectedTime('')
     setErrorMessage(null)
+    setFieldErrors({})
     setSlotError(null)
     setLoadingSlots(true)
     setSlotsRefreshKey((prev) => prev + 1)
@@ -188,7 +231,7 @@ function BookingPage({ services, servicesLoading, servicesError, onRetryServices
           </Alert>
         )}
 
-        <form onSubmit={handleSubmit} className="booking-form">
+        <form onSubmit={handleSubmit} className="booking-form" noValidate>
           <div className="form-row">
             <Input
               id="customerName"
@@ -196,9 +239,12 @@ function BookingPage({ services, servicesLoading, servicesError, onRetryServices
               type="text"
               placeholder="مثال: محمد امینی"
               value={customerName}
-              onChange={(e) => setCustomerName(e.target.value)}
+              onChange={(e) => {
+                setCustomerName(e.target.value)
+                clearFieldError('customer_name')
+              }}
+              error={fieldErrors.customer_name}
               maxLength={50}
-              required
             />
 
             <Input
@@ -207,9 +253,12 @@ function BookingPage({ services, servicesLoading, servicesError, onRetryServices
               type="tel"
               placeholder="مثال: 09121234567"
               value={customerPhone}
-              onChange={(e) => setCustomerPhone(e.target.value)}
+              onChange={(e) => {
+                setCustomerPhone(e.target.value)
+                clearFieldError('customer_phone')
+              }}
+              error={fieldErrors.customer_phone}
               maxLength={16}
-              required
             />
           </div>
 
@@ -231,13 +280,22 @@ function BookingPage({ services, servicesLoading, servicesError, onRetryServices
                   </Button>
                 )}
               </Alert>
+              {fieldErrors.service_id && (
+                <p className="field-error" role="alert">
+                  {fieldErrors.service_id}
+                </p>
+              )}
             </div>
           ) : (
             <Select
               id="serviceSelect"
               label="انتخاب خدمت:"
               value={effectiveServiceId}
-              onChange={(e) => setSelectedServiceId(e.target.value)}
+              onChange={(e) => {
+                setSelectedServiceId(e.target.value)
+                clearFieldError('service_id')
+              }}
+              error={fieldErrors.service_id}
               hint={
                 selectedService ? (
                   <>
@@ -262,7 +320,7 @@ function BookingPage({ services, servicesLoading, servicesError, onRetryServices
             min={todayStr}
             value={selectedDate}
             onChange={(e) => handleDateChange(e.target.value)}
-            required
+            error={fieldErrors.date}
           />
 
           <div className="form-group">
@@ -290,7 +348,10 @@ function BookingPage({ services, servicesLoading, servicesError, onRetryServices
                       type="button"
                       disabled={isDisabled}
                       className={`slot-btn ${isSelected ? 'selected' : ''} ${isDisabled ? 'disabled' : ''}`}
-                      onClick={() => setSelectedTime(slot.time)}
+                      onClick={() => {
+                        setSelectedTime(slot.time)
+                        clearFieldError('start_time')
+                      }}
                     >
                       <span className="slot-time">{slot.time}</span>
                       {slot.is_booked && <span className="slot-badge booked">رزرو شده</span>}
@@ -300,6 +361,11 @@ function BookingPage({ services, servicesLoading, servicesError, onRetryServices
                 })}
               </div>
             )}
+            {fieldErrors.start_time && (
+              <p className="field-error" role="alert">
+                {fieldErrors.start_time}
+              </p>
+            )}
             {selectedTime && (
               <p className="selected-time-notice">
                 ساعت انتخابی شما: <strong>{selectedTime}</strong>
@@ -308,11 +374,7 @@ function BookingPage({ services, servicesLoading, servicesError, onRetryServices
           </div>
 
           <div className="form-actions">
-            <Button
-              type="submit"
-              variant="submit"
-              disabled={submitting || !selectedTime || !effectiveServiceId}
-            >
+            <Button type="submit" variant="submit" disabled={submitting}>
               {submitting ? 'در حال ثبت نوبت...' : 'ثبت نهایی نوبت'}
             </Button>
           </div>

@@ -7,8 +7,17 @@ class DomainError(Exception):
         self.message = message
 
 
+class FieldValidationError(DomainError):
+    """خطای اعتبارسنجی ورودی به تفکیک هر فیلد (HTTP 422)"""
+
+    def __init__(self, errors: dict[str, str], message: str | None = None):
+        self.errors = errors
+        summary = message or next(iter(errors.values()), "داده‌های ورودی نامعتبر است.")
+        super().__init__(summary)
+
+
 class ValidationDomainError(DomainError):
-    """خطای اعتبارسنجی ورودی یا نقض قوانین کسب‌وکار"""
+    """خطای نقض قوانین کسب‌وکار روی ورودی معتبر"""
 
 
 class ConflictDomainError(DomainError):
