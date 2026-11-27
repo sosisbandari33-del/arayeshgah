@@ -83,11 +83,17 @@ def test_lookup_returns_only_exact_matched_appointment_and_supports_persian_digi
         },
     ).json()["appointment"]
 
+    # آزمایش با ترکیب ارقام فارسی، عربی (٤٥٦ کیبورد قدیمی ویندوز) و نیم‌فاصله (\u200c)
+    mixed_code = (
+        _to_persian_digits(r1["tracking_code"][:3])
+        + "\u200c"
+        + "".join("٠١٢٣٤٥٦٧٨٩"[int(ch)] for ch in r1["tracking_code"][3:])
+    )
     lookup_res = client.post(
         "/api/appointments/lookup",
         json={
-            "customer_phone": "۰۹۱۲ ۳۴۵-۶۷۸۹",
-            "tracking_code": _to_persian_digits(r1["tracking_code"]),
+            "customer_phone": "۰۹۱۲\u200c۳۴۵-۶۷۸۹",
+            "tracking_code": mixed_code,
         },
     )
     assert lookup_res.status_code == 200

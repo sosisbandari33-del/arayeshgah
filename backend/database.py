@@ -471,22 +471,52 @@ def get_appointment_by_phone_and_tracking(customer_phone: str, tracking_code: st
         conn.close()
 
 
-def get_cancel_deadline_hours() -> int:
-    """خواندن مهلت لغو نوبت (به ساعت) از جدول تنظیمات؛ پیش‌فرض ۲ ساعت قبل (قانون R9)"""
+def get_all_app_settings() -> dict[str, str]:
     conn = get_connection()
     try:
         cursor = conn.cursor()
-        cursor.execute(
-            "SELECT value FROM app_settings WHERE key = 'cancel_deadline_hours'"
-        )
-        row = cursor.fetchone()
-        if row is None:
-            return 2
-        return max(0, int(row["value"]))
-    except (ValueError, sqlite3.Error):
-        return 2
+        cursor.execute("SELECT key, value FROM app_settings")
+        return {row["key"]: row["value"] for row in cursor.fetchall()}
     finally:
         conn.close()
+
+
+def get_app_setting(key: str) -> str | None:
+    conn = get_connection()
+    try:
+        cursor = conn.cursor()
+        cursor.execute("SELECT value FROM app_settings WHERE key = ?", (key,))
+        row = cursor.fetchone()
+        return row["value"] if row is not None else None
+    finally:
+        conn.close()
+
+
+def upsert_app_settings(updates: dict[str, str]) -> dict[str, str]:
+    conn = get_connection()
+    try:
+        cursor = conn.cursor()
+        for key, val in updates.items():
+            cursor.execute(
+                """
+                INSERT INTO app_settings (key, value)
+                VALUES (?, ?)
+                ON CONFLICT(key) DO UPDATE SET value = excluded.value
+                """,
+                (key, str(val)),
+            )
+        conn.commit()
+    finally:
+        conn.close()
+    return get_all_app_settings()
+
+
+def get_cancel_deadline_hours() -> int:
+    """خواندن مهلت لغو نوبت (به ساعت) از جدول تنظیمات دیتابیس (قانون R9)"""
+    raw_val = get_app_setting("cancel_deadline_hours")
+    if raw_val is None:
+        return 0
+    return max(0, int(raw_val))
 
 
 def get_appointment_by_id(appointment_id: int):
@@ -560,6 +590,42 @@ def get_admin_by_id(admin_id: int):
         return dict(row) if row else None
     finally:
         conn.close()
+
+
+def get_admin_full_by_id(admin_id: int):
+    conn = get_connection()
+    try:
+        cursor = conn.cursor()
+        cursor.execute(
+            "SELECT id, phone, password_hash, created_at FROM admin_users WHERE id = ?",
+            (admin_id,),
+        )
+        row = cursor.fetchone()
+        return dict(row) if row else None
+    finally:
+        conn.close()
+
+
+def update_admin_credentials(
+    admin_id: int, new_phone: str, new_password_hash: str | None = None
+):
+    conn = get_connection()
+    try:
+        cursor = conn.cursor()
+        if new_password_hash is not None:
+            cursor.execute(
+                "UPDATE admin_users SET phone = ?, password_hash = ? WHERE id = ?",
+                (new_phone, new_password_hash, admin_id),
+            )
+        else:
+            cursor.execute(
+                "UPDATE admin_users SET phone = ? WHERE id = ?",
+                (new_phone, admin_id),
+            )
+        conn.commit()
+    finally:
+        conn.close()
+    return get_admin_by_id(admin_id)
 
 
 def create_admin_user(phone: str, password_hash: str):

@@ -197,3 +197,15 @@
     padding: 1.25rem 1rem;
   }
 }
+
+@media (max-width: 480px) {
+  .weekday-row {
+    grid-template-columns: 1fr;
+    gap: 0.6rem;
+  }
+
+  .weekday-name,
+  .closed-toggle-label {
+    padding-top: 0;
+  }
+}

@@ -5,6 +5,7 @@ from migrations import (
     m004_working_hours_and_time_offs,
     m005_multi_service_appointments,
     m006_tracking_code_and_cancel_deadline,
+    m007_salon_settings,
 )
 
 MIGRATIONS = [
@@ -14,6 +15,7 @@ MIGRATIONS = [
     (m004_working_hours_and_time_offs.VERSION, m004_working_hours_and_time_offs.upgrade),
     (m005_multi_service_appointments.VERSION, m005_multi_service_appointments.upgrade),
     (m006_tracking_code_and_cancel_deadline.VERSION, m006_tracking_code_and_cancel_deadline.upgrade),
+    (m007_salon_settings.VERSION, m007_salon_settings.upgrade),
 ]
 
 

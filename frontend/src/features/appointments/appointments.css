@@ -68,13 +68,20 @@
   gap: 0.75rem;
 }
 
-.date-picker-wrap label {
+.owner-date-input-group {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.owner-date-input-group label {
   font-weight: 700;
   font-size: 0.95rem;
   color: var(--text-heading);
+  white-space: nowrap;
 }
 
-.date-picker-wrap input[type="date"] {
+.owner-date-input-group input[type="date"] {
   padding: 0.55rem 0.85rem;
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-element);
@@ -219,6 +226,11 @@
 .customer-name {
   font-weight: 700;
   color: var(--text-heading);
+  max-width: 170px;
+}
+
+.appointment-service-cell {
+  max-width: 240px;
 }
 
 .phone-link {
@@ -361,9 +373,11 @@
     padding: 1.25rem;
   }
 
-  .date-picker-wrap {
+  .date-picker-wrap,
+  .owner-date-input-group {
     flex-direction: column;
     align-items: stretch;
+    width: 100%;
   }
 
   .date-quick-nav {

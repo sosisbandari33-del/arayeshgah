@@ -16,6 +16,7 @@
 | وضعیت فعلی رزرو ۴ مرحله‌ای نوبت و صدور کد پیگیری ۶ رقمی (قوانین R3، R5 تا R8 و R10) | [docs/features/booking.md](features/booking.md) |
 | وضعیت فعلی پیگیری و لغو نوبت توسط مشتری با کد پیگیری ۶ رقمی و مهلت لغو (قانون R9) | [docs/features/appointment-tracking.md](features/appointment-tracking.md) |
 | وضعیت فعلی پنل مدیریت و لغو نوبت (محافظت‌شده با ورود مدیر) | [docs/features/appointments-management.md](features/appointments-management.md) |
+| وضعیت فعلی صفحه‌ی تنظیمات کامل (نام آرایشگاه، موبایل و رمز ورود، مهلت لغو، ساعت‌ها و خدمات) | [docs/features/settings.md](features/settings.md) |
 | نصب، راه‌اندازی روی کامپیوتر تازه و اجرای تست‌ها | [README.md](../README.md) |
 
 *(یادداشت سطح ۲: فایل‌های پوشه‌ی `docs/features/` و `docs/architecture/overview.md` همواره فقط وضعیت پیاده‌سازی‌شده‌ی الان را شرح می‌دهند. FRD فیچرهای جدید سطح ۲ مانند ورود مدیر، ساعت کاری و تعطیلی‌ها، پیگیری نوبت و تنظیمات هم‌زمان با پیاده‌سازی هر تسک در قدم ۵ ساخته شده و به جدول بالا اضافه می‌شوند.)*

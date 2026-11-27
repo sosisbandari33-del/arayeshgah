@@ -47,3 +47,14 @@ class TimeOffCreateRequest(BaseModel):
     start_time: str | None = Field(default=None, description="ساعت شروع مرخصی ساعتی (HH:MM)")
     end_time: str | None = Field(default=None, description="ساعت پایان مرخصی ساعتی (HH:MM)")
     reason: str = Field(default="", description="توضیح اختیاری")
+
+
+class GeneralSettingsUpdateRequest(BaseModel):
+    salon_name: str = Field(..., description="نام آرایشگاه")
+    cancel_deadline_hours: int = Field(..., description="مهلت لغو نوبت به ساعت پیش از شروع")
+
+
+class AdminAccountUpdateRequest(BaseModel):
+    phone: str = Field(..., description="شماره موبایل ورود مدیر")
+    current_password: str = Field(..., description="رمز عبور فعلی مدیر")
+    new_password: str | None = Field(default=None, description="رمز عبور جدید (اختیاری)")

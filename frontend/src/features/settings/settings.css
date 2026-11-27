@@ -1,0 +1,120 @@
+/* ==========================================================================
+   صفحه یکپارچه‌ی تنظیمات کامل آرایشگاه (/admin/settings)
+   ========================================================================== */
+
+.admin-settings-page {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  width: 100%;
+}
+
+.settings-overview-card,
+.settings-section-card {
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-card);
+  padding: 1.6rem 1.75rem;
+  box-shadow: var(--shadow-card);
+}
+
+.settings-overview-card h2 {
+  margin: 0 0 0.4rem 0;
+  font-size: 1.45rem;
+  font-weight: 800;
+  color: var(--text-heading);
+}
+
+.settings-overview-subtitle {
+  margin: 0 0 1.15rem 0;
+  font-size: 0.92rem;
+  color: var(--text-muted);
+  line-height: 1.65;
+}
+
+.settings-anchor-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
+
+.settings-anchor-pill {
+  text-decoration: none;
+  padding: 0.5rem 1rem;
+  border-radius: var(--radius-pill);
+  background-color: #f1f5f9;
+  border: 1px solid var(--border-subtle);
+  color: var(--text-body);
+  font-family: inherit;
+  font-size: 0.86rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.settings-anchor-pill:hover {
+  background-color: var(--primary-light);
+  border-color: var(--primary-border);
+  color: var(--primary);
+}
+
+.settings-anchor-pill.active {
+  background-color: var(--primary);
+  border-color: var(--primary);
+  color: #ffffff;
+}
+
+.settings-top-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  align-items: start;
+}
+
+.settings-section-card h3 {
+  margin: 0 0 0.35rem 0;
+  font-size: 1.2rem;
+  font-weight: 800;
+  color: var(--text-heading);
+}
+
+.settings-section-desc {
+  margin: 0 0 1.2rem 0;
+  font-size: 0.88rem;
+  color: var(--text-muted);
+  line-height: 1.6;
+}
+
+.settings-form-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 1.05rem;
+}
+
+.settings-form-footer {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 0.35rem;
+}
+
+.settings-section-card,
+.settings-embedded-block {
+  scroll-margin-top: 1.25rem;
+}
+
+@media (max-width: 960px) {
+  .settings-top-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .settings-overview-card,
+  .settings-section-card {
+    padding: 1.25rem 1rem;
+  }
+
+  .settings-form-footer .btn {
+    width: 100%;
+  }
+}

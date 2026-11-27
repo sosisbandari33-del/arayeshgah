@@ -158,6 +158,12 @@
   color: #ffffff;
 }
 
+@media (max-width: 1024px) {
+  .admin-topbar {
+    padding: 1rem 1.2rem;
+  }
+}
+
 @media (max-width: 768px) {
   .login-card {
     padding: 1.75rem 1.25rem;
@@ -173,5 +179,23 @@
   .admin-topbar-left {
     justify-content: space-between;
     width: 100%;
+  }
+
+  .admin-tabs {
+    width: 100%;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .admin-tab-link {
+    text-align: center;
+    padding: 0.5rem 0.65rem;
+    font-size: 0.84rem;
+  }
+}
+
+@media (max-width: 420px) {
+  .admin-tabs {
+    grid-template-columns: 1fr;
   }
 }

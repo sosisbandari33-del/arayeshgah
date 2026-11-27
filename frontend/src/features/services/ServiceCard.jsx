@@ -1,17 +1,19 @@
 import { Button, Card } from '../../ui'
-import { formatPrice } from '../../utils/persian'
+import { formatPrice, toPersianDigits } from '../../utils/persian'
 
 function ServiceCard({ service, onBook }) {
   return (
     <Card className="service-card">
       <div className="service-header">
-        <h3 className="service-title">{service.name}</h3>
+        <h3 className="service-title text-clamp-2" title={service.name}>
+          {service.name}
+        </h3>
       </div>
 
       <div className="service-details">
         <div className="detail-item">
           <span className="label">مدت زمان:</span>
-          <span className="value">⏱ {service.duration} دقیقه</span>
+          <span className="value">⏱ {toPersianDigits(service.duration)} دقیقه</span>
         </div>
         <div className="detail-item">
           <span className="label">قیمت:</span>

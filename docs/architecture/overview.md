@@ -10,12 +10,13 @@
 ## بخش‌های اصلی پروژه
 
 ### ۱. فرانت‌اند (`frontend/src/`)
-- **ورودی و مسیریابی (`main.jsx` و `App.jsx`):** راه‌اندازی `BrowserRouter` و نگاشت مسیرهای عمومی (`/`، `/booking` و `/tracking`)، مسیر ورود مدیر (`/admin/login`) و مسیرهای محافظت‌شده‌ی پنل مدیریت (`/admin/appointments`، `/admin/services` و `/admin/schedule` زیر گارد `RequireAdminAuth` و چیدمان `AdminLayout`).
-- **اجزای عمومی رابط کاربری (`ui/`):** کامپوننت‌های پایه‌ی قابل استفاده در کل برنامه شامل `Button`، `Card`، `Input`، `Select`، `Modal` و `Alert`.
+- **ورودی و مسیریابی (`main.jsx` و `App.jsx`):** راه‌اندازی `BrowserRouter`، بارگذاری تنظیمات عمومی (`salon_name`) و نگاشت مسیرهای عمومی (`/`، `/booking` و `/tracking`)، مسیر ورود مدیر (`/admin/login`) و مسیرهای محافظت‌شده‌ی پنل مدیریت (`/admin/appointments`، `/admin/services`، `/admin/schedule` و `/admin/settings` زیر گارد `RequireAdminAuth` و چیدمان `AdminLayout`).
+- **اجزای عمومی رابط کاربری (`ui/`):** کامپوننت‌های پایه‌ی مشترک در کل برنامه شامل `Button`، `Card`، `Input`، `Select`، `Modal`، `Alert` و اجزای استاندارد ۴ حالت لیست (`LoadingState`، `ErrorState` و `EmptyState`).
 - **پوشه‌ی فیچرها (`features/`):**
   - `features/auth/`: صفحه‌ی ورود مدیر (`AdminLoginPage`)، گارد دسترسی (`RequireAdminAuth`)، پوسته‌ی پنل مدیریت و خروج (`AdminLayout`)، ذخیره‌سازی نشست (`authStorage.js`)، `authApi.js` و `auth.css`.
   - `features/services/`: `ServicesPage` (نمایش خدمات فعال به مشتری)، `AdminServicesPage` (مدیریت خدمات توسط صاحب کار)، `ServiceCard`، `servicesApi.js`، `services.css`.
   - `features/schedule/`: `AdminSchedulePage` (مدیریت ساعات کاری هفتگی، تعطیلی‌ها و مرخصی‌ها همراه با هشدار تداخل)، `scheduleApi.js`، `schedule.css`.
+  - `features/settings/`: `AdminSettingsPage` (صفحه‌ی تنظیمات یکپارچه شامل نام آرایشگاه، مهلت لغو، تغییر موبایل و رمز مدیر و ترکیب ماژول‌های ساعت کاری و خدمات بدون تکرار کامپوننت)، `settingsApi.js`، `settings.css`.
   - `features/booking/`: ویزارد ۴ مرحله‌ای رزرو مشتری (`BookingPage`)، صفحه‌ی خلاصه و کد پیگیری ۶ رقمی (`BookingReceipt`)، `bookingApi.js`، `booking.css`.
   - `features/tracking/`: صفحه‌ی پیگیری و لغو نوبت مشتری بر اساس قانون `R9` (`TrackingPage`، `trackingApi.js`، `tracking.css`).
   - `features/appointments/`: `AppointmentsPage`، `CancelAppointmentModal`، `appointmentsApi.js`، `appointments.css`.
@@ -25,8 +26,8 @@
 - **تنظیمات متمرکز (`config.py`):** تنها نقطه‌ی مجاز خواندن مقادیر محیطی از `.env` (`ADMIN_PHONE`، `ADMIN_PASSWORD`، `AUTH_SECRET_KEY`).
 - **لایه‌ی دریافت درخواست HTTP (`main.py`، `schemas.py` و `routes/`):**
   - `main.py`: اجرای migrationها و ساخت حساب اولیه‌ی مدیر در راه‌اندازی، تنظیم CORS، مدیریت یکپارچه‌ی خطاهای `422`/`401`/`404`/`400` به زبان فارسی و ثبت روترها.
-  - `routes/` (`health.py`، `services.py`، `auth.py`، `schedule.py`، `appointments.py`): دریافت درخواست‌ها، اعمال وابستگی `require_admin` روی اندپوینت‌های مدیریتی و فراخوانی لایه‌ی منطق کسب‌وکار.
-- **لایه‌ی منطق کسب‌وکار (`services/`):** مستقل از FastAPI شامل `errors.py`، `catalog.py`، `auth.py` (هش رمز با `PBKDF2-HMAC-SHA256` و توکن امضاشده‌ی `HMAC-SHA256`)، `schedule.py` (ساعات کاری هفتگی، تعطیلی، مرخصی ساعتی و تشخیص نوبت‌های متداخل) و `appointments.py` (اعتبارسنجی فیلدبه‌فیلد و قوانین کسب‌وکار).
+  - `routes/` (`health.py`، `services.py`، `auth.py`، `schedule.py`، `settings.py`، `appointments.py`): دریافت درخواست‌ها، اعمال وابستگی `require_admin` روی اندپوینت‌های مدیریتی و فراخوانی لایه‌ی منطق کسب‌وکار.
+- **لایه‌ی منطق کسب‌وکار (`services/`):** مستقل از FastAPI شامل `errors.py`، `catalog.py`، `auth.py` (هش رمز با `PBKDF2-HMAC-SHA256` و توکن امضاشده‌ی `HMAC-SHA256`)، `schedule.py` (ساعات کاری هفتگی، تعطیلی، مرخصی ساعتی و تشخیص نوبت‌های متداخل)، `settings.py` (نام آرایشگاه، مهلت لغو و تغییر امن موبایل/رمز ورود با بررسی رمز فعلی) و `appointments.py` (اعتبارسنجی فیلدبه‌فیلد و قوانین کسب‌وکار).
 - **لایه‌ی دیتابیس و Migrationها (`database.py` و `migrations/`):** مدیریت اتصالات SQLite با `PRAGMA foreign_keys = ON` و اجرای ترتیبی migrationها با ثبت نسخه در جدول `schema_migrations`.
 - **تست‌های خودکار (`tests/` و `pytest.ini`):** تست‌های HTTP با `pytest` و `TestClient` روی دیتابیس و تنظیمات محیطی ایزوله.
 
@@ -35,7 +36,7 @@
 - **`schema_migrations`:** ثبت نسخه‌ی migrationهای اجراشده.
 - **`services`:** نگهداری لیست خدمات، قیمت، مدت‌زمان (به دقیقه) و وضعیت فعال/غیرفعال (`is_active`).
 - **`appointments` و `appointment_services`:** نگهداری نوبت‌ها (شامل ساعت شروع و پایان، مجموع مدت، مجموع قیمت، `tracking_code` یکتای ۶ رقمی و `created_at` محلی) و نگاشت یک یا چند خدمت هر نوبت با کلید خارجی به `services`.
-- **`app_settings`:** نگهداری تنظیمات کلید-مقدار برنامه (از جمله `cancel_deadline_hours` با پیش‌فرض `2` ساعت برای مهلت لغو مشتری).
+- **`app_settings`:** نگهداری تنظیمات کلید-مقدار برنامه در دیتابیس (`salon_name` و `cancel_deadline_hours`) بدون مقدار ثابت در کد.
 - **`admin_users`:** نگهداری شماره‌ی موبایل یکتا و هش رمز عبور مدیر.
 - **`working_hours`:** نگهداری ساعت شروع، پایان و وضعیت تعطیلی هر یک از ۷ روز هفته (شنبه تا جمعه).
 - **`time_offs`:** نگهداری تعطیلی‌های تاریخ خاص و مرخصی‌های چندساعته در یک روز.

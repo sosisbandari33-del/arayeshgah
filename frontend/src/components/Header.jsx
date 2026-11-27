@@ -1,6 +1,6 @@
 import { Link, useLocation } from 'react-router-dom'
 
-function Header({ onEnsureServices }) {
+function Header({ salonName, onEnsureServices }) {
   const { pathname } = useLocation()
   const isAdminSection = pathname.startsWith('/admin')
 
@@ -9,8 +9,10 @@ function Header({ onEnsureServices }) {
       <div className="header-top">
         <Link to="/" className="logo-section">
           <span className="logo-badge">✂️</span>
-          <div>
-            <h1 className="salon-name">پیرایش کلاسیک</h1>
+          <div className="logo-texts">
+            <h1 className="salon-name text-truncate-line" title={salonName}>
+              {salonName}
+            </h1>
             <p className="salon-tagline">ارائه بهترین و باکیفیت‌ترین خدمات پیرایش و اصلاح آقایان</p>
           </div>
         </Link>

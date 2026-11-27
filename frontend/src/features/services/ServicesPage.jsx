@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom'
-import { Button, Card } from '../../ui'
+import { Button, Card, EmptyState, ErrorState, LoadingState } from '../../ui'
 import ServiceCard from './ServiceCard'
 import './services.css'
 
@@ -28,24 +28,22 @@ function ServicesPage({ services, loading, error, onRetryServices }) {
       </div>
 
       {loading && (
-        <Card className="status-box loading">
-          <p>در حال بارگذاری لیست خدمات...</p>
+        <Card className="services-state-card">
+          <LoadingState variant="cards" count={4} label="در حال بارگذاری لیست خدمات..." />
         </Card>
       )}
 
-      {error && (
-        <Card className="status-box error">
-          <p>❌ برقراری ارتباط با سرور ممکن نیست ({error})</p>
-          <p className="hint">لطفاً مطمئن شوید بک‌اند روی پورت ۸۰۰۰ فعال است.</p>
-          <Button variant="retry" onClick={onRetryServices}>
-            تلاش مجدد
-          </Button>
-        </Card>
+      {!loading && error && (
+        <ErrorState message={error} onRetry={onRetryServices} />
       )}
 
       {!loading && !error && services.length === 0 && (
-        <Card className="status-box">
-          <p>در حال حاضر هیچ خدمت فعالی برای رزرو ثبت نشده است.</p>
+        <Card className="services-state-card">
+          <EmptyState
+            icon="✂️"
+            title="در حال حاضر خدمتی برای رزرو فعال نیست"
+            description="به‌محض فعال شدن خدمات توسط مدیریت، فهرست آن‌ها در این بخش نمایش داده می‌شود."
+          />
         </Card>
       )}
 

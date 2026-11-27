@@ -61,11 +61,14 @@ def get_day_schedule_context(selected_date: dt_date, normalized_date: str) -> di
     ir_weekday = python_date_to_iranian_weekday(selected_date)
     wh = get_working_hours_for_day(ir_weekday)
     if not wh:
-        wh = {
-            "day_of_week": ir_weekday,
-            "start_time": "10:00",
-            "end_time": "20:00",
-            "is_closed": ir_weekday == 6,
+        day_name = WEEKDAY_NAMES.get(ir_weekday, "این روز")
+        return {
+            "is_closed_day": True,
+            "closure_reason": f"برنامه‌ی کاری برای روزهای {day_name} ثبت نشده است.",
+            "working_hours": None,
+            "partial_leaves": [],
+            "allowed_slots": [],
+            "candidate_starts": [],
         }
 
     day_time_offs = get_time_offs_by_date(normalized_date)
@@ -173,6 +176,8 @@ def update_working_hours_logic(days_payload: list[dict]):
     normalized_days: list[dict] = []
     errors: dict[str, str] = {}
 
+    existing_by_day = {row["day_of_week"]: row for row in get_all_working_hours()}
+
     for item in days_payload:
         day_idx = item["day_of_week"]
         if day_idx < 0 or day_idx > 6 or day_idx in seen_days:
@@ -185,12 +190,12 @@ def update_working_hours_logic(days_payload: list[dict]):
         end_min, norm_end = parse_hhmm_to_minutes(item["end_time"])
 
         if item["is_closed"]:
-            # در صورت تعطیل بودن روز، اگر ساعت معتبری نبود همان ساعت پیش‌فرض حفظ شود
+            prev_row = existing_by_day.get(day_idx)
             normalized_days.append(
                 {
                     "day_of_week": day_idx,
-                    "start_time": norm_start or "10:00",
-                    "end_time": norm_end or "20:00",
+                    "start_time": norm_start or (prev_row["start_time"] if prev_row else ""),
+                    "end_time": norm_end or (prev_row["end_time"] if prev_row else ""),
                     "is_closed": True,
                 }
             )

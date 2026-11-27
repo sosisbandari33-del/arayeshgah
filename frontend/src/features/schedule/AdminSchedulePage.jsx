@@ -1,6 +1,16 @@
 import { useState, useEffect } from 'react'
-import { Alert, Button, Card, Input, Modal } from '../../ui'
+import {
+  Alert,
+  Button,
+  Card,
+  EmptyState,
+  ErrorState,
+  Input,
+  LoadingState,
+  Modal,
+} from '../../ui'
 import { getLocalDateString } from '../../utils/date'
+import { toPersianDigits } from '../../utils/persian'
 import {
   createTimeOff,
   deleteTimeOff,
@@ -10,20 +20,10 @@ import {
 } from './scheduleApi'
 import './schedule.css'
 
-const FALLBACK_WEEKDAYS = [
-  { day_of_week: 0, day_name: 'شنبه', start_time: '10:00', end_time: '20:00', is_closed: false },
-  { day_of_week: 1, day_name: 'یکشنبه', start_time: '10:00', end_time: '20:00', is_closed: false },
-  { day_of_week: 2, day_name: 'دوشنبه', start_time: '10:00', end_time: '20:00', is_closed: false },
-  { day_of_week: 3, day_name: 'سه‌شنبه', start_time: '10:00', end_time: '20:00', is_closed: false },
-  { day_of_week: 4, day_name: 'چهارشنبه', start_time: '10:00', end_time: '20:00', is_closed: false },
-  { day_of_week: 5, day_name: 'پنج‌شنبه', start_time: '10:00', end_time: '20:00', is_closed: false },
-  { day_of_week: 6, day_name: 'جمعه', start_time: '10:00', end_time: '20:00', is_closed: true },
-]
-
 function AdminSchedulePage() {
   const todayStr = getLocalDateString()
 
-  const [days, setDays] = useState(FALLBACK_WEEKDAYS)
+  const [days, setDays] = useState([])
   const [loadingHours, setLoadingHours] = useState(true)
   const [hoursError, setHoursError] = useState(null)
   const [hoursFieldErrors, setHoursFieldErrors] = useState({})
@@ -37,8 +37,8 @@ function AdminSchedulePage() {
 
   const [offDate, setOffDate] = useState(todayStr)
   const [isFullDay, setIsFullDay] = useState(true)
-  const [offStartTime, setOffStartTime] = useState('14:00')
-  const [offEndTime, setOffEndTime] = useState('16:00')
+  const [offStartTime, setOffStartTime] = useState('')
+  const [offEndTime, setOffEndTime] = useState('')
   const [offReason, setOffReason] = useState('')
   const [offFieldErrors, setOffFieldErrors] = useState({})
   const [offFormError, setOffFormError] = useState(null)
@@ -58,9 +58,7 @@ function AdminSchedulePage() {
     fetchWorkingHours(controller.signal)
       .then((data) => {
         if (!active) return
-        if (Array.isArray(data) && data.length === 7) {
-          setDays(data)
-        }
+        setDays(Array.isArray(data) ? data : [])
         setHoursError(null)
         setLoadingHours(false)
       })
@@ -267,8 +265,8 @@ function AdminSchedulePage() {
             <ul className="conflict-list">
               {conflictBanner.appointments.map((appt) => (
                 <li key={appt.id}>
-                  <strong>{appt.customer_name}</strong> ({appt.customer_phone}) — تاریخ{' '}
-                  {appt.date} ساعت {appt.start_time} ({appt.service_name})
+                  <strong>{appt.customer_name}</strong> ({toPersianDigits(appt.customer_phone)}) — تاریخ{' '}
+                  {toPersianDigits(appt.date)} ساعت {toPersianDigits(appt.start_time)} ({appt.service_name})
                 </li>
               ))}
             </ul>
@@ -280,24 +278,8 @@ function AdminSchedulePage() {
       <Card className="schedule-card">
         <h3>🕒 ساعات کاری هفتگی</h3>
         <p className="schedule-subtitle">
-          برای هر روز هفته ساعت شروع و پایان مشخص کنید یا آن روز را تعطیل بزنید (پیش‌فرض: شنبه تا پنج‌شنبه ۱۰:۰۰ تا ۲۰:۰۰ و جمعه تعطیل).
+          برای هر روز هفته ساعت شروع و پایان مشخص کنید یا آن روز را تعطیل بزنید.
         </p>
-
-        {hoursError && (
-          <Alert variant="error">
-            <p>❌ {hoursError}</p>
-            <Button
-              variant="retry"
-              onClick={() => {
-                setLoadingHours(true)
-                setHoursError(null)
-                setHoursReloadKey((prev) => prev + 1)
-              }}
-            >
-              تلاش دوباره
-            </Button>
-          </Alert>
-        )}
 
         {hoursFieldErrors.days && (
           <Alert variant="error">
@@ -306,7 +288,18 @@ function AdminSchedulePage() {
         )}
 
         {loadingHours ? (
-          <p className="loading-slots">در حال بارگذاری برنامه هفتگی...</p>
+          <LoadingState variant="table" count={4} label="در حال بارگذاری ساعات کاری هفته..." />
+        ) : hoursError ? (
+          <ErrorState
+            message={hoursError}
+            onRetry={() => {
+              setLoadingHours(true)
+              setHoursError(null)
+              setHoursReloadKey((prev) => prev + 1)
+            }}
+          />
+        ) : days.length === 0 ? (
+          <EmptyState icon="🕒" title="برنامه کاری هفتگی یافت نشد" />
         ) : (
           <form onSubmit={handleSaveWeeklyHours} noValidate>
             <div className="weekly-hours-list">
@@ -375,7 +368,7 @@ function AdminSchedulePage() {
       <Card className="schedule-card">
         <h3>📅 ثبت تعطیلی تاریخ خاص یا مرخصی چندساعته</h3>
         <p className="schedule-subtitle">
-          یک تاریخ خاص را کامل تعطیل کنید یا در یک روز بازه‌ی مرخصی ساعتی (مثلاً از ۱۴:۰۰ تا ۱۶:۰۰) بگذارید.
+          یک تاریخ خاص را کامل تعطیل کنید یا در یک روز بازه‌ی مرخصی ساعتی ثبت نمایید.
         </p>
 
         {offFormError && (
@@ -479,29 +472,31 @@ function AdminSchedulePage() {
       <Card className="schedule-card">
         <h3>فهرست تعطیلی‌ها و مرخصی‌های ثبت‌شده</h3>
 
-        {loadingTimeOffs && <p className="loading-slots">در حال بارگذاری فهرست...</p>}
+        {loadingTimeOffs && (
+          <LoadingState
+            variant="table"
+            count={3}
+            label="در حال بارگذاری فهرست تعطیلی‌ها و مرخصی‌ها..."
+          />
+        )}
 
-        {timeOffsError && (
-          <Alert variant="error">
-            <p>❌ {timeOffsError}</p>
-            <Button
-              variant="retry"
-              onClick={() => {
-                setLoadingTimeOffs(true)
-                setTimeOffsError(null)
-                setTimeOffsReloadKey((prev) => prev + 1)
-              }}
-            >
-              تلاش دوباره
-            </Button>
-          </Alert>
+        {!loadingTimeOffs && timeOffsError && (
+          <ErrorState
+            message={timeOffsError}
+            onRetry={() => {
+              setLoadingTimeOffs(true)
+              setTimeOffsError(null)
+              setTimeOffsReloadKey((prev) => prev + 1)
+            }}
+          />
         )}
 
         {!loadingTimeOffs && !timeOffsError && timeOffs.length === 0 && (
-          <div className="empty-state">
-            <span className="empty-icon">📆</span>
-            <p>هیچ تعطیلی تاریخ خاص یا مرخصی ساعتی ثبت نشده است.</p>
-          </div>
+          <EmptyState
+            icon="📆"
+            title="هیچ تعطیلی یا مرخصی‌ای ثبت نشده است"
+            description="در صورت ثبت تعطیلی تاریخ خاص یا مرخصی ساعتی، فهرست آن‌ها اینجا نمایش داده می‌شود."
+          />
         )}
 
         {!loadingTimeOffs && !timeOffsError && timeOffs.length > 0 && (
@@ -520,7 +515,7 @@ function AdminSchedulePage() {
                 {timeOffs.map((item) => (
                   <tr key={item.id}>
                     <td>
-                      <strong>{item.date}</strong>
+                      <strong>{toPersianDigits(item.date)}</strong>
                     </td>
                     <td>
                       <span
@@ -532,9 +527,13 @@ function AdminSchedulePage() {
                     <td>
                       {item.is_full_day
                         ? 'تمام روز'
-                        : `از ${item.start_time} تا ${item.end_time}`}
+                        : `از ${toPersianDigits(item.start_time)} تا ${toPersianDigits(item.end_time)}`}
                     </td>
-                    <td className="reason-cell">{item.reason || '—'}</td>
+                    <td className="reason-cell">
+                      <span className="text-clamp-2" title={item.reason || ''}>
+                        {item.reason || '—'}
+                      </span>
+                    </td>
                     <td>
                       <button
                         type="button"
@@ -580,7 +579,7 @@ function AdminSchedulePage() {
         {itemToDelete && (
           <p>
             آیا از حذف {itemToDelete.is_full_day ? 'تعطیلی' : 'مرخصی ساعتی'} تاریخ{' '}
-            <strong>{itemToDelete.date}</strong> اطمینان دارید؟
+            <strong>{toPersianDigits(itemToDelete.date)}</strong> اطمینان دارید؟
           </p>
         )}
       </Modal>

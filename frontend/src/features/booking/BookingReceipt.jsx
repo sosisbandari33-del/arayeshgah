@@ -1,8 +1,11 @@
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Button, Card } from '../../ui'
 import { formatPrice, toPersianDigits } from '../../utils/persian'
 
 function BookingReceipt({ appointment, onNewBooking, onGoHome }) {
+  const [copied, setCopied] = useState(false)
+
   const timeLabel = appointment.end_time
     ? `${toPersianDigits(appointment.start_time)} تا ${toPersianDigits(appointment.end_time)}`
     : toPersianDigits(appointment.start_time)
@@ -10,6 +13,19 @@ function BookingReceipt({ appointment, onNewBooking, onGoHome }) {
   const trackingUrl = appointment.tracking_code
     ? `/tracking?phone=${encodeURIComponent(appointment.customer_phone)}&code=${encodeURIComponent(appointment.tracking_code)}`
     : '/tracking'
+
+  const handleCopyCode = () => {
+    if (!appointment.tracking_code || !navigator.clipboard) return
+    navigator.clipboard
+      .writeText(appointment.tracking_code)
+      .then(() => {
+        setCopied(true)
+        setTimeout(() => setCopied(false), 2500)
+      })
+      .catch((err) => {
+        console.warn('کپی خودکار کد پیگیری پشتیبانی نشد:', err.message)
+      })
+  }
 
   return (
     <div className="booking-container">
@@ -22,17 +38,31 @@ function BookingReceipt({ appointment, onNewBooking, onGoHome }) {
 
         {appointment.tracking_code && (
           <div className="tracking-code-highlight" aria-label="کد پیگیری ۶ رقمی">
-            <span className="tracking-code-caption">کد پیگیری ۶ رقمی شما</span>
-            <strong className="tracking-code-digits">
-              {toPersianDigits(appointment.tracking_code)}
-            </strong>
+            <span className="tracking-code-caption">کد پیگیری ۶ رقمی شما (از چپ به راست):</span>
+            <div className="tracking-code-row">
+              <strong className="tracking-code-digits" dir="ltr">
+                {toPersianDigits(appointment.tracking_code)}
+              </strong>
+              <button
+                type="button"
+                className="btn-copy-code"
+                onClick={handleCopyCode}
+              >
+                {copied ? '✅ کپی شد' : '📋 کپی کد'}
+              </button>
+            </div>
           </div>
         )}
 
         <div className="receipt-box">
           <div className="receipt-item">
             <span className="receipt-label">خدمت‌های انتخابی:</span>
-            <span className="receipt-value receipt-services-text">{appointment.service_name}</span>
+            <span
+              className="receipt-value receipt-services-text text-clamp-2"
+              title={appointment.service_name}
+            >
+              {appointment.service_name}
+            </span>
           </div>
           {appointment.total_duration > 0 && (
             <div className="receipt-item">
