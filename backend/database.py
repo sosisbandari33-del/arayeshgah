@@ -321,3 +321,207 @@ def create_admin_user(phone: str, password_hash: str):
         return dict(row)
     finally:
         conn.close()
+
+
+def get_all_working_hours():
+    conn = get_connection()
+    try:
+        cursor = conn.cursor()
+        cursor.execute(
+            "SELECT day_of_week, start_time, end_time, is_closed FROM working_hours ORDER BY day_of_week ASC"
+        )
+        rows = cursor.fetchall()
+        return [
+            {
+                "day_of_week": row["day_of_week"],
+                "start_time": row["start_time"],
+                "end_time": row["end_time"],
+                "is_closed": bool(row["is_closed"]),
+            }
+            for row in rows
+        ]
+    finally:
+        conn.close()
+
+
+def get_working_hours_for_day(day_of_week: int):
+    conn = get_connection()
+    try:
+        cursor = conn.cursor()
+        cursor.execute(
+            "SELECT day_of_week, start_time, end_time, is_closed FROM working_hours WHERE day_of_week = ?",
+            (day_of_week,),
+        )
+        row = cursor.fetchone()
+        if not row:
+            return None
+        return {
+            "day_of_week": row["day_of_week"],
+            "start_time": row["start_time"],
+            "end_time": row["end_time"],
+            "is_closed": bool(row["is_closed"]),
+        }
+    finally:
+        conn.close()
+
+
+def save_all_working_hours(days: list[dict]):
+    conn = get_connection()
+    try:
+        cursor = conn.cursor()
+        for item in days:
+            cursor.execute(
+                """
+                INSERT INTO working_hours (day_of_week, start_time, end_time, is_closed)
+                VALUES (?, ?, ?, ?)
+                ON CONFLICT(day_of_week) DO UPDATE SET
+                    start_time = excluded.start_time,
+                    end_time = excluded.end_time,
+                    is_closed = excluded.is_closed
+                """,
+                (
+                    item["day_of_week"],
+                    item["start_time"],
+                    item["end_time"],
+                    1 if item["is_closed"] else 0,
+                ),
+            )
+        conn.commit()
+    finally:
+        conn.close()
+    return get_all_working_hours()
+
+
+def _format_time_off_row(row) -> dict:
+    item = dict(row)
+    item["is_full_day"] = bool(item["is_full_day"])
+    return item
+
+
+def get_all_time_offs():
+    conn = get_connection()
+    try:
+        cursor = conn.cursor()
+        cursor.execute(
+            """
+            SELECT id, date, is_full_day, start_time, end_time, reason, created_at
+            FROM time_offs
+            ORDER BY date ASC, is_full_day DESC, start_time ASC, id ASC
+            """
+        )
+        rows = cursor.fetchall()
+        return [_format_time_off_row(row) for row in rows]
+    finally:
+        conn.close()
+
+
+def get_time_offs_by_date(date_str: str):
+    conn = get_connection()
+    try:
+        cursor = conn.cursor()
+        cursor.execute(
+            """
+            SELECT id, date, is_full_day, start_time, end_time, reason, created_at
+            FROM time_offs
+            WHERE date = ?
+            ORDER BY is_full_day DESC, start_time ASC, id ASC
+            """,
+            (date_str,),
+        )
+        rows = cursor.fetchall()
+        return [_format_time_off_row(row) for row in rows]
+    finally:
+        conn.close()
+
+
+def get_time_off_by_id(time_off_id: int):
+    conn = get_connection()
+    try:
+        cursor = conn.cursor()
+        cursor.execute(
+            "SELECT id, date, is_full_day, start_time, end_time, reason, created_at FROM time_offs WHERE id = ?",
+            (time_off_id,),
+        )
+        row = cursor.fetchone()
+        return _format_time_off_row(row) if row else None
+    finally:
+        conn.close()
+
+
+def create_time_off(
+    date_str: str,
+    is_full_day: bool,
+    start_time: str | None,
+    end_time: str | None,
+    reason: str,
+):
+    conn = get_connection()
+    try:
+        cursor = conn.cursor()
+        cursor.execute(
+            """
+            INSERT INTO time_offs (date, is_full_day, start_time, end_time, reason, created_at)
+            VALUES (?, ?, ?, ?, ?, datetime('now', 'localtime'))
+            """,
+            (
+                date_str,
+                1 if is_full_day else 0,
+                None if is_full_day else start_time,
+                None if is_full_day else end_time,
+                reason,
+            ),
+        )
+        conn.commit()
+        new_id = cursor.lastrowid
+    finally:
+        conn.close()
+    return get_time_off_by_id(new_id)
+
+
+def delete_time_off(time_off_id: int):
+    conn = get_connection()
+    try:
+        cursor = conn.cursor()
+        cursor.execute("DELETE FROM time_offs WHERE id = ?", (time_off_id,))
+        conn.commit()
+    finally:
+        conn.close()
+
+
+def get_active_appointments_from_date(from_date_str: str):
+    """دریافت تمام نوبت‌های فعال از یک تاریخ به بعد برای بررسی تداخل با تعطیلی/تغییر ساعت کاری"""
+    conn = get_connection()
+    try:
+        cursor = conn.cursor()
+        cursor.execute(
+            """
+            SELECT id, customer_name, customer_phone, service_id, service_name, date, start_time, status
+            FROM appointments
+            WHERE date >= ? AND status != 'لغو شده'
+            ORDER BY date ASC, start_time ASC
+            """,
+            (from_date_str,),
+        )
+        rows = cursor.fetchall()
+        return [dict(row) for row in rows]
+    finally:
+        conn.close()
+
+
+def get_active_appointments_by_date(date_str: str):
+    conn = get_connection()
+    try:
+        cursor = conn.cursor()
+        cursor.execute(
+            """
+            SELECT id, customer_name, customer_phone, service_id, service_name, date, start_time, status
+            FROM appointments
+            WHERE date = ? AND status != 'لغو شده'
+            ORDER BY start_time ASC
+            """,
+            (date_str,),
+        )
+        rows = cursor.fetchall()
+        return [dict(row) for row in rows]
+    finally:
+        conn.close()

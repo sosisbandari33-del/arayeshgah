@@ -12,6 +12,7 @@
 | شناخت بخش‌های فنی فعلی، پشته فنی، دیتابیس و نحوه‌ی ارتباط فرانت و بک‌اند | [docs/architecture/overview.md](architecture/overview.md) |
 | وضعیت فعلی ورود مدیر، توکن دسترسی و حفاظت پنل مدیریت | [docs/features/admin-auth.md](features/admin-auth.md) |
 | وضعیت فعلی نمایش خدمات به مشتری و مدیریت خدمات در پنل صاحب کار | [docs/features/services.md](features/services.md) |
+| وضعیت فعلی ساعات کاری هفتگی، تعطیلی روز خاص و مرخصی چندساعته (قوانین R6 و R7) | [docs/features/working-hours.md](features/working-hours.md) |
 | وضعیت فعلی رزرو نوبت (به‌روزرسانی هم‌زمان با تسک‌های سطح ۲) | [docs/features/booking.md](features/booking.md) |
 | وضعیت فعلی پنل مدیریت و لغو نوبت (محافظت‌شده با ورود مدیر) | [docs/features/appointments-management.md](features/appointments-management.md) |
 | نصب، راه‌اندازی روی کامپیوتر تازه و اجرای تست‌ها | [README.md](../README.md) |

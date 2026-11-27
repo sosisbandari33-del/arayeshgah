@@ -20,7 +20,7 @@ function ServicesPage({ services, loading, error, onRetryServices }) {
           <p className="section-subtitle">خدمت مورد نظر خود را انتخاب کرده و سریع نوبت بگیرید.</p>
         </div>
         <div className="header-actions">
-          <span className="badge">ساعت کاری: ۱۰:۰۰ الی ۲۰:۰۰</span>
+          <span className="badge">نوبت‌دهی آنلاین بر اساس برنامه کاری</span>
           <Button variant="primary-pill" onClick={() => handleBookService(null)}>
             رزرو وقت حضوری
           </Button>

@@ -7,6 +7,7 @@ from database import init_db
 from routes.appointments import router as appointments_router
 from routes.auth import router as auth_router
 from routes.health import router as health_router
+from routes.schedule import router as schedule_router
 from routes.services import router as services_router
 from services.auth import ensure_initial_admin
 from services.errors import (
@@ -43,6 +44,8 @@ MISSING_FIELD_MESSAGES = {
     "price": "وارد کردن قیمت خدمت الزامی است.",
     "duration": "وارد کردن مدت خدمت الزامی است.",
     "is_active": "مشخص کردن وضعیت خدمت الزامی است.",
+    "days": "ارسال برنامه‌ی هفتگی الزامی است.",
+    "end_time": "وارد کردن ساعت پایان الزامی است.",
 }
 
 INVALID_FIELD_MESSAGES = {
@@ -58,6 +61,9 @@ INVALID_FIELD_MESSAGES = {
     "price": "قیمت خدمت باید یک عدد صحیح معتبر باشد.",
     "duration": "مدت خدمت باید یک عدد صحیح به دقیقه باشد.",
     "is_active": "وضعیت فعال بودن خدمت نامعتبر است.",
+    "days": "ساختار برنامه‌ی هفتگی نامعتبر است.",
+    "end_time": "ساعت پایان نامعتبر است.",
+    "time_off_id": "شناسه تعطیلی یا مرخصی نامعتبر است.",
 }
 
 
@@ -131,4 +137,5 @@ app.add_middleware(
 app.include_router(health_router)
 app.include_router(services_router)
 app.include_router(auth_router)
+app.include_router(schedule_router)
 app.include_router(appointments_router)

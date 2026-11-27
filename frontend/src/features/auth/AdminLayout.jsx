@@ -29,6 +29,12 @@ function AdminLayout() {
             >
               ✂️ مدیریت خدمات
             </NavLink>
+            <NavLink
+              to="/admin/schedule"
+              className={({ isActive }) => `admin-tab-link ${isActive ? 'active' : ''}`.trim()}
+            >
+              🕒 ساعات کاری و مرخصی
+            </NavLink>
           </nav>
         </div>
 
