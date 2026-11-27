@@ -5,18 +5,27 @@ from fastapi.responses import JSONResponse
 
 from database import init_db
 from routes.appointments import router as appointments_router
+from routes.auth import router as auth_router
 from routes.health import router as health_router
 from routes.services import router as services_router
+from services.auth import ensure_initial_admin
 from services.errors import (
     ConflictDomainError,
     DomainError,
     FieldValidationError,
     NotFoundDomainError,
+    UnauthorizedDomainError,
     ValidationDomainError,
 )
 
-# مقداردهی اولیه دیتابیس
-init_db()
+
+def bootstrap_app():
+    """اجرای migrationهای دیتابیس و اطمینان از ساخت حساب اولیه‌ی مدیر از تنظیمات"""
+    init_db()
+    ensure_initial_admin()
+
+
+bootstrap_app()
 
 app = FastAPI(title="سیستم نوبت‌دهی آرایشگاه")
 
@@ -27,6 +36,8 @@ MISSING_FIELD_MESSAGES = {
     "service_id": "انتخاب خدمت الزامی است.",
     "start_time": "انتخاب ساعت نوبت الزامی است.",
     "appointment_id": "شناسه نوبت الزامی است.",
+    "phone": "وارد کردن شماره موبایل الزامی است.",
+    "password": "وارد کردن رمز عبور الزامی است.",
 }
 
 INVALID_FIELD_MESSAGES = {
@@ -36,6 +47,8 @@ INVALID_FIELD_MESSAGES = {
     "date": "فرمت تاریخ نامعتبر است (باید دقیقاً به شکل YYYY-MM-DD باشد).",
     "start_time": "ساعت انتخابی نامعتبر است.",
     "appointment_id": "شناسه نوبت نامعتبر است.",
+    "phone": "شماره موبایل باید ۱۱ رقم بوده و با ۰۹ شروع شود.",
+    "password": "رمز عبور واردشده نامعتبر است.",
 }
 
 
@@ -46,6 +59,12 @@ async def domain_exception_handler(request: Request, exc: DomainError):
         return JSONResponse(
             status_code=422,
             content={"detail": exc.message, "errors": exc.errors},
+        )
+    if isinstance(exc, UnauthorizedDomainError):
+        return JSONResponse(
+            status_code=401,
+            content={"detail": exc.message},
+            headers={"WWW-Authenticate": "Bearer"},
         )
     if isinstance(exc, NotFoundDomainError):
         return JSONResponse(status_code=404, content={"detail": exc.message})
@@ -100,4 +119,5 @@ app.add_middleware(
 # ثبت روترهای دریافت درخواست HTTP
 app.include_router(health_router)
 app.include_router(services_router)
+app.include_router(auth_router)
 app.include_router(appointments_router)

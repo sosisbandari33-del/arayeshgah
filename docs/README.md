@@ -10,9 +10,10 @@
 | پروتکل ۵ فازی کار، نقشه‌ی اثر و مراحل تحویل هر تسک | [AGENTS.md](../AGENTS.md) |
 | قانون‌نامه‌ی ایجنت (ممنوع‌ها، «اول از انسان بپرس» و استانداردهای فنی پروژه) | [docs/AGENT_RULES.md](AGENT_RULES.md) |
 | شناخت بخش‌های فنی فعلی، پشته فنی، دیتابیس و نحوه‌ی ارتباط فرانت و بک‌اند | [docs/architecture/overview.md](architecture/overview.md) |
+| وضعیت فعلی ورود مدیر، توکن دسترسی و حفاظت پنل مدیریت | [docs/features/admin-auth.md](features/admin-auth.md) |
 | وضعیت فعلی نمایش خدمات و تعرفه‌ها | [docs/features/services.md](features/services.md) |
 | وضعیت فعلی رزرو نوبت (به‌روزرسانی هم‌زمان با تسک‌های سطح ۲) | [docs/features/booking.md](features/booking.md) |
-| وضعیت فعلی پنل مدیریت و لغو نوبت (به‌روزرسانی هم‌زمان با تسک‌های سطح ۲) | [docs/features/appointments-management.md](features/appointments-management.md) |
+| وضعیت فعلی پنل مدیریت و لغو نوبت (محافظت‌شده با ورود مدیر) | [docs/features/appointments-management.md](features/appointments-management.md) |
 | نصب، راه‌اندازی روی کامپیوتر تازه و اجرای تست‌ها | [README.md](../README.md) |
 
 *(یادداشت سطح ۲: فایل‌های پوشه‌ی `docs/features/` و `docs/architecture/overview.md` همواره فقط وضعیت پیاده‌سازی‌شده‌ی الان را شرح می‌دهند. FRD فیچرهای جدید سطح ۲ مانند ورود مدیر، ساعت کاری و تعطیلی‌ها، پیگیری نوبت و تنظیمات هم‌زمان با پیاده‌سازی هر تسک در قدم ۵ ساخته شده و به جدول بالا اضافه می‌شوند.)*

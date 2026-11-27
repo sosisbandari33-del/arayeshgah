@@ -1,5 +1,7 @@
-import sqlite3
 import os
+import sqlite3
+
+from migrations.runner import run_migrations
 
 DB_PATH = os.path.join(os.path.dirname(__file__), "barbershop.db")
 
@@ -14,58 +16,7 @@ def get_connection():
 def init_db():
     conn = get_connection()
     try:
-        cursor = conn.cursor()
-
-        # ساخت جدول خدمات
-        cursor.execute("""
-            CREATE TABLE IF NOT EXISTS services (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                name TEXT NOT NULL,
-                price INTEGER NOT NULL,
-                duration INTEGER NOT NULL
-            )
-        """)
-
-        # ساخت جدول نوبت‌ها
-        cursor.execute("""
-            CREATE TABLE IF NOT EXISTS appointments (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                customer_name TEXT NOT NULL,
-                customer_phone TEXT NOT NULL,
-                service_id INTEGER NOT NULL,
-                service_name TEXT NOT NULL,
-                date TEXT NOT NULL,
-                start_time TEXT NOT NULL,
-                status TEXT NOT NULL DEFAULT 'رزرو شده',
-                created_at TIMESTAMP DEFAULT (datetime('now', 'localtime')),
-                FOREIGN KEY (service_id) REFERENCES services(id)
-            )
-        """)
-
-        # شاخص یکتایی برای جلوگیری قطعی از رزرو همزمان یک ساعت برای دو نفر (جلوگیری از Race Condition)
-        cursor.execute("""
-            CREATE UNIQUE INDEX IF NOT EXISTS idx_unique_active_slot
-            ON appointments (date, start_time)
-            WHERE status != 'لغو شده'
-        """)
-
-        # بررسی خالی بودن جدول خدمات و تزریق داده‌های اولیه
-        cursor.execute("SELECT COUNT(*) FROM services")
-        count = cursor.fetchone()[0]
-
-        if count == 0:
-            initial_services = [
-                ("اصلاح مو", 250000, 30),
-                ("اصلاح مو و ریش", 350000, 60),
-                ("رنگ مو", 900000, 90),
-                ("شست‌وشو و حالت‌دهی", 150000, 30),
-            ]
-            cursor.executemany(
-                "INSERT INTO services (name, price, duration) VALUES (?, ?, ?)",
-                initial_services,
-            )
-
-        conn.commit()
+        run_migrations(conn)
     finally:
         conn.close()
 
@@ -183,5 +134,66 @@ def cancel_appointment(appointment_id: int):
         cursor.execute("SELECT * FROM appointments WHERE id = ?", (appointment_id,))
         row = cursor.fetchone()
         return dict(row) if row else None
+    finally:
+        conn.close()
+
+
+def get_admin_count() -> int:
+    conn = get_connection()
+    try:
+        cursor = conn.cursor()
+        cursor.execute("SELECT COUNT(*) FROM admin_users")
+        return cursor.fetchone()[0]
+    finally:
+        conn.close()
+
+
+def get_admin_by_phone(phone: str):
+    conn = get_connection()
+    try:
+        cursor = conn.cursor()
+        cursor.execute(
+            "SELECT id, phone, password_hash, created_at FROM admin_users WHERE phone = ?",
+            (phone,),
+        )
+        row = cursor.fetchone()
+        return dict(row) if row else None
+    finally:
+        conn.close()
+
+
+def get_admin_by_id(admin_id: int):
+    conn = get_connection()
+    try:
+        cursor = conn.cursor()
+        cursor.execute(
+            "SELECT id, phone, created_at FROM admin_users WHERE id = ?",
+            (admin_id,),
+        )
+        row = cursor.fetchone()
+        return dict(row) if row else None
+    finally:
+        conn.close()
+
+
+def create_admin_user(phone: str, password_hash: str):
+    conn = get_connection()
+    try:
+        cursor = conn.cursor()
+        cursor.execute(
+            """
+            INSERT INTO admin_users (phone, password_hash, created_at)
+            VALUES (?, ?, datetime('now', 'localtime'))
+            """,
+            (phone, password_hash),
+        )
+        conn.commit()
+        new_id = cursor.lastrowid
+        cursor.execute(
+            "SELECT id, phone, created_at FROM admin_users WHERE id = ?",
+            (new_id,),
+        )
+        row = cursor.fetchone()
+        return dict(row)
     finally:
         conn.close()
