@@ -97,9 +97,12 @@ def get_day_schedule_context(selected_date: dt_date, normalized_date: str) -> di
     assert start_min is not None and end_min is not None
 
     allowed_slots: list[str] = []
+    candidate_starts: list[int] = []
     current = start_min
-    while current + 30 <= end_min:
-        allowed_slots.append(minutes_to_hhmm(current))
+    while current < end_min:
+        candidate_starts.append(current)
+        if current + 30 <= end_min:
+            allowed_slots.append(minutes_to_hhmm(current))
         current += 30
 
     parsed_leaves = []
@@ -122,8 +125,11 @@ def get_day_schedule_context(selected_date: dt_date, normalized_date: str) -> di
         "is_closed_day": False,
         "closure_reason": None,
         "working_hours": wh,
+        "work_start_min": start_min,
+        "work_end_min": end_min,
         "partial_leaves": parsed_leaves,
         "allowed_slots": allowed_slots,
+        "candidate_starts": candidate_starts,
     }
 
 
@@ -227,6 +233,7 @@ def update_working_hours_logic(days_payload: list[dict]):
         ir_day = python_date_to_iranian_weekday(appt_date)
         cfg = by_day[ir_day]
         appt_min, _ = parse_hhmm_to_minutes(appt["start_time"])
+        appt_dur = int(appt.get("total_duration") or 30)
         cfg_start, _ = parse_hhmm_to_minutes(cfg["start_time"])
         cfg_end, _ = parse_hhmm_to_minutes(cfg["end_time"])
 
@@ -236,7 +243,7 @@ def update_working_hours_logic(days_payload: list[dict]):
             appt_min is not None
             and cfg_start is not None
             and cfg_end is not None
-            and (appt_min < cfg_start or appt_min + 30 > cfg_end)
+            and (appt_min < cfg_start or appt_min + appt_dur > cfg_end)
         ):
             conflicts.append(appt)
 
@@ -322,7 +329,8 @@ def create_time_off_logic(
     elif start_min is not None and end_min is not None:
         for appt in day_active:
             appt_min, _ = parse_hhmm_to_minutes(appt["start_time"])
-            if appt_min is not None and appt_min < end_min and (appt_min + 30) > start_min:
+            appt_dur = int(appt.get("total_duration") or 30)
+            if appt_min is not None and appt_min < end_min and (appt_min + appt_dur) > start_min:
                 conflicts.append(appt)
 
     warning = None

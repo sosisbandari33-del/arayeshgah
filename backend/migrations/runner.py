@@ -3,6 +3,7 @@ from migrations import (
     m002_create_admin_users,
     m003_add_service_is_active,
     m004_working_hours_and_time_offs,
+    m005_multi_service_appointments,
 )
 
 MIGRATIONS = [
@@ -10,6 +11,7 @@ MIGRATIONS = [
     (m002_create_admin_users.VERSION, m002_create_admin_users.upgrade),
     (m003_add_service_is_active.VERSION, m003_add_service_is_active.upgrade),
     (m004_working_hours_and_time_offs.VERSION, m004_working_hours_and_time_offs.upgrade),
+    (m005_multi_service_appointments.VERSION, m005_multi_service_appointments.upgrade),
 ]
 
 

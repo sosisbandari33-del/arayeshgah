@@ -1,7 +1,11 @@
 import { requestJson } from '../../api/client'
 
-export function fetchSlots(date, signal) {
-  return requestJson(`/api/slots?date=${encodeURIComponent(date)}`, {
+export function fetchSlots(date, serviceIds, signal) {
+  const params = new URLSearchParams({
+    date,
+    service_ids: serviceIds.join(','),
+  })
+  return requestJson(`/api/slots?${params.toString()}`, {
     signal,
     timeoutMs: 5000,
     fallbackError: 'خطا در بارگذاری بازه‌های زمانی',

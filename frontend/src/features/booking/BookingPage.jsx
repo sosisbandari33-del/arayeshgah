@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import { Alert, Button, Card, Input, Select } from '../../ui'
+import { Alert, Button, Card, Input } from '../../ui'
 import { getLocalDateString, isValidDateString } from '../../utils/date'
-import { normalizePhone, formatPrice } from '../../utils/persian'
+import { normalizePhone, formatPrice, toPersianDigits } from '../../utils/persian'
 import { fetchSlots, createAppointment } from './bookingApi'
 import BookingReceipt from './BookingReceipt'
 import './booking.css'
@@ -10,6 +10,7 @@ import './booking.css'
 const BOOKING_FORM_FIELDS = new Set([
   'customer_name',
   'customer_phone',
+  'service_ids',
   'service_id',
   'date',
   'start_time',
@@ -18,41 +19,50 @@ const BOOKING_FORM_FIELDS = new Set([
 function BookingPage({ services, servicesLoading, servicesError, onRetryServices }) {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
-  const preSelectedServiceId = searchParams.get('service') || ''
+  const rawPreselected = searchParams.get('service')
+  const parsedPreselected = rawPreselected && /^\d+$/.test(rawPreselected) ? Number(rawPreselected) : null
   const todayStr = getLocalDateString()
 
-  const [customerName, setCustomerName] = useState('')
-  const [customerPhone, setCustomerPhone] = useState('')
-  const [selectedServiceId, setSelectedServiceId] = useState(preSelectedServiceId)
+  const [selectedServiceIds, setSelectedServiceIds] = useState(() =>
+    parsedPreselected ? [parsedPreselected] : []
+  )
   const [selectedDate, setSelectedDate] = useState(todayStr)
   const [selectedTime, setSelectedTime] = useState('')
+  const [customerName, setCustomerName] = useState('')
+  const [customerPhone, setCustomerPhone] = useState('')
 
   const [slots, setSlots] = useState([])
   const [isClosedDay, setIsClosedDay] = useState(false)
   const [closureReason, setClosureReason] = useState(null)
   const [dayWorkingHours, setDayWorkingHours] = useState(null)
-  const [loadingSlots, setLoadingSlots] = useState(true)
   const [slotError, setSlotError] = useState(null)
   const [slotsRefreshKey, setSlotsRefreshKey] = useState(0)
+  const [completedFetchKey, setCompletedFetchKey] = useState('')
+
   const [submitting, setSubmitting] = useState(false)
   const [errorMessage, setErrorMessage] = useState(null)
   const [fieldErrors, setFieldErrors] = useState({})
   const [successData, setSuccessData] = useState(null)
 
-  const hasValidSelectedService = services.some((s) => String(s.id) === String(selectedServiceId))
-  const effectiveServiceId = hasValidSelectedService
-    ? String(selectedServiceId)
-    : services && services.length > 0
-      ? String(services[0].id)
-      : ''
+  const activeSelectedServices = services.filter((s) => selectedServiceIds.includes(s.id))
+  const effectiveServiceIds = activeSelectedServices.map((s) => s.id)
+  const serviceIdsKey = effectiveServiceIds.join(',')
+  const totalDuration = activeSelectedServices.reduce((sum, s) => sum + s.duration, 0)
+  const totalPrice = activeSelectedServices.reduce((sum, s) => sum + s.price, 0)
+
+  const currentFetchKey =
+    selectedDate && serviceIdsKey ? `${selectedDate}|${serviceIdsKey}|${slotsRefreshKey}` : ''
+  const loadingSlots = Boolean(currentFetchKey) && completedFetchKey !== currentFetchKey
 
   useEffect(() => {
-    if (!selectedDate) return
+    if (!selectedDate || !serviceIdsKey) return
 
     let active = true
     const controller = new AbortController()
+    const keyForThisRun = `${selectedDate}|${serviceIdsKey}|${slotsRefreshKey}`
+    const idsList = serviceIdsKey.split(',').map(Number)
 
-    fetchSlots(selectedDate, controller.signal)
+    fetchSlots(selectedDate, idsList, controller.signal)
       .then((data) => {
         if (!active) return
         setSlots(data.slots || [])
@@ -60,7 +70,7 @@ function BookingPage({ services, servicesLoading, servicesError, onRetryServices
         setClosureReason(data.closure_reason || null)
         setDayWorkingHours(data.working_hours || null)
         setSlotError(null)
-        setLoadingSlots(false)
+        setCompletedFetchKey(keyForThisRun)
       })
       .catch((err) => {
         if (!active || err.name === 'AbortError') return
@@ -69,14 +79,14 @@ function BookingPage({ services, servicesLoading, servicesError, onRetryServices
         setClosureReason(null)
         setDayWorkingHours(null)
         setSlotError(err.message)
-        setLoadingSlots(false)
+        setCompletedFetchKey(keyForThisRun)
       })
 
     return () => {
       active = false
       controller.abort()
     }
-  }, [selectedDate, slotsRefreshKey])
+  }, [selectedDate, serviceIdsKey, slotsRefreshKey])
 
   const clearFieldError = (field) => {
     setFieldErrors((prev) => {
@@ -87,6 +97,17 @@ function BookingPage({ services, servicesLoading, servicesError, onRetryServices
     })
   }
 
+  const toggleServiceSelection = (serviceId) => {
+    setSelectedServiceIds((prev) =>
+      prev.includes(serviceId) ? prev.filter((id) => id !== serviceId) : [...prev, serviceId]
+    )
+    setSelectedTime('')
+    setSlotError(null)
+    clearFieldError('service_ids')
+    clearFieldError('service_id')
+    clearFieldError('start_time')
+  }
+
   const handleDateChange = (newDate) => {
     setSelectedDate(newDate)
     setSelectedTime('')
@@ -95,22 +116,32 @@ function BookingPage({ services, servicesLoading, servicesError, onRetryServices
     clearFieldError('start_time')
     if (!newDate) {
       setSlots([])
-      setLoadingSlots(false)
-    } else {
-      setLoadingSlots(true)
     }
   }
 
   const handleRetrySlots = () => {
-    if (!selectedDate) return
+    if (!selectedDate || effectiveServiceIds.length === 0) return
     setSlotError(null)
     setSelectedTime('')
-    setLoadingSlots(true)
     setSlotsRefreshKey((prev) => prev + 1)
   }
 
   const validateClientForm = () => {
     const nextErrors = {}
+
+    if (effectiveServiceIds.length === 0) {
+      nextErrors.service_ids = 'لطفاً حداقل یک خدمت را انتخاب کنید.'
+    }
+
+    if (!selectedDate) {
+      nextErrors.date = 'وارد کردن تاریخ الزامی است.'
+    } else if (!isValidDateString(selectedDate)) {
+      nextErrors.date = 'فرمت تاریخ نامعتبر است (باید دقیقاً به شکل YYYY-MM-DD باشد).'
+    }
+
+    if (!selectedTime) {
+      nextErrors.start_time = 'انتخاب ساعت نوبت الزامی است.'
+    }
 
     const cleanName = customerName.trim()
     if (!cleanName) {
@@ -124,20 +155,6 @@ function BookingPage({ services, servicesLoading, servicesError, onRetryServices
       nextErrors.customer_phone = 'وارد کردن شماره موبایل الزامی است.'
     } else if (!/^09\d{9}$/.test(cleanPhone)) {
       nextErrors.customer_phone = 'شماره موبایل باید ۱۱ رقم بوده و با ۰۹ شروع شود.'
-    }
-
-    if (!effectiveServiceId) {
-      nextErrors.service_id = 'انتخاب خدمت الزامی است.'
-    }
-
-    if (!selectedDate) {
-      nextErrors.date = 'وارد کردن تاریخ الزامی است.'
-    } else if (!isValidDateString(selectedDate)) {
-      nextErrors.date = 'فرمت تاریخ نامعتبر است (باید دقیقاً به شکل YYYY-MM-DD باشد).'
-    }
-
-    if (!selectedTime) {
-      nextErrors.start_time = 'انتخاب ساعت نوبت الزامی است.'
     }
 
     return { nextErrors, cleanName, cleanPhone }
@@ -159,7 +176,7 @@ function BookingPage({ services, servicesLoading, servicesError, onRetryServices
     createAppointment({
       customer_name: cleanName,
       customer_phone: cleanPhone,
-      service_id: Number(effectiveServiceId),
+      service_ids: effectiveServiceIds,
       date: selectedDate,
       start_time: selectedTime,
     })
@@ -183,9 +200,8 @@ function BookingPage({ services, servicesLoading, servicesError, onRetryServices
         }
 
         setErrorMessage(err.message)
-        if (err.isServerResponse && selectedDate) {
+        if (err.isServerResponse && selectedDate && effectiveServiceIds.length > 0) {
           setSelectedTime('')
-          setLoadingSlots(true)
           setSlotsRefreshKey((prev) => prev + 1)
         }
       })
@@ -202,7 +218,6 @@ function BookingPage({ services, servicesLoading, servicesError, onRetryServices
     setErrorMessage(null)
     setFieldErrors({})
     setSlotError(null)
-    setLoadingSlots(true)
     setSlotsRefreshKey((prev) => prev + 1)
   }
 
@@ -221,7 +236,8 @@ function BookingPage({ services, servicesLoading, servicesError, onRetryServices
     )
   }
 
-  const selectedService = services.find((s) => s.id === Number(effectiveServiceId))
+  const serviceFieldError = fieldErrors.service_ids || fieldErrors.service_id
+  const selectedSlotObj = slots.find((s) => s.time === selectedTime)
 
   return (
     <div className="booking-container">
@@ -231,7 +247,9 @@ function BookingPage({ services, servicesLoading, servicesError, onRetryServices
             &larr; بازگشت به خانه
           </Button>
           <h2>فرم رزرو نوبت آرایشگاه</h2>
-          <p className="booking-subtitle">لطفاً مشخصات خود و زمان مورد نظرتان را مشخص فرمایید.</p>
+          <p className="booking-subtitle">
+            ابتدا یک یا چند خدمت را انتخاب کنید، سپس روز و یکی از ساعت‌های آزاد متناسب را برگزینید.
+          </p>
         </div>
 
         {errorMessage && (
@@ -241,10 +259,166 @@ function BookingPage({ services, servicesLoading, servicesError, onRetryServices
         )}
 
         <form onSubmit={handleSubmit} className="booking-form" noValidate>
+          {/* گام ۱: انتخاب یک یا چند خدمت */}
+          <div className="form-group">
+            <label>۱. انتخاب خدمت (امکان انتخاب چند مورد):</label>
+            {servicesLoading ? (
+              <p className="loading-slots">در حال بارگذاری لیست خدمات...</p>
+            ) : services.length === 0 ? (
+              <Alert variant="box-error">
+                <p className="slot-error-text">
+                  ⚠️{' '}
+                  {servicesError
+                    ? `دریافت لیست خدمات ممکن نیست (${servicesError}).`
+                    : 'در حال حاضر هیچ خدمت فعالی برای رزرو وجود ندارد.'}
+                </p>
+                {onRetryServices && (
+                  <Button variant="retry-small" onClick={onRetryServices}>
+                    🔄 تلاش دوباره برای دریافت خدمات
+                  </Button>
+                )}
+              </Alert>
+            ) : (
+              <>
+                <div className="service-multi-grid" role="group" aria-label="انتخاب خدمات">
+                  {services.map((service) => {
+                    const isChecked = effectiveServiceIds.includes(service.id)
+                    return (
+                      <label
+                        key={service.id}
+                        className={`service-choice-card ${isChecked ? 'checked' : ''}`}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={isChecked}
+                          onChange={() => toggleServiceSelection(service.id)}
+                        />
+                        <div className="service-choice-content">
+                          <span className="service-choice-name">{service.name}</span>
+                          <span className="service-choice-meta">
+                            ⏱ {toPersianDigits(service.duration)} دقیقه |{' '}
+                            <strong>{formatPrice(service.price)} تومان</strong>
+                          </span>
+                        </div>
+                      </label>
+                    )
+                  })}
+                </div>
+
+                {activeSelectedServices.length > 0 && (
+                  <div className="selected-services-summary">
+                    <span>
+                      خدمات انتخابی: <strong>{toPersianDigits(activeSelectedServices.length)} مورد</strong>
+                    </span>
+                    <span>
+                      مجموع مدت: <strong>{toPersianDigits(totalDuration)} دقیقه</strong>
+                    </span>
+                    <span>
+                      مجموع هزینه: <strong>{formatPrice(totalPrice)} تومان</strong>
+                    </span>
+                  </div>
+                )}
+              </>
+            )}
+
+            {serviceFieldError && (
+              <p className="field-error" role="alert">
+                {serviceFieldError}
+              </p>
+            )}
+          </div>
+
+          {/* گام ۲: انتخاب روز */}
+          <Input
+            id="bookingDate"
+            label="۲. انتخاب روز:"
+            type="date"
+            min={todayStr}
+            value={selectedDate}
+            onChange={(e) => handleDateChange(e.target.value)}
+            error={fieldErrors.date}
+          />
+
+          {/* گام ۳: نمایش فقط زمان‌هایی که خدمات کامل در آن جا می‌شوند */}
+          <div className="form-group">
+            <label>
+              ۳. انتخاب ساعت نوبت
+              {effectiveServiceIds.length > 0 && dayWorkingHours
+                ? ` (ساعت کاری روز: ${toPersianDigits(dayWorkingHours.start_time)} الی ${toPersianDigits(dayWorkingHours.end_time)})`
+                : ''}
+              :
+            </label>
+
+            {effectiveServiceIds.length === 0 ? (
+              <div className="step-guide-box">
+                👆 لطفاً ابتدا در گام ۱ یک یا چند خدمت را انتخاب کنید تا ساعت‌های متناسب محاسبه شوند.
+              </div>
+            ) : !selectedDate ? (
+              <p className="field-hint">لطفاً تاریخ نوبت را انتخاب کنید.</p>
+            ) : loadingSlots ? (
+              <p className="loading-slots">
+                در حال بررسی زمان‌های آزاد برای {toPersianDigits(totalDuration)} دقیقه خدمت...
+              </p>
+            ) : slotError ? (
+              <Alert variant="box-error">
+                <p className="slot-error-text">⚠️ {slotError}</p>
+                <Button variant="retry-small" onClick={handleRetrySlots}>
+                  🔄 تلاش دوباره
+                </Button>
+              </Alert>
+            ) : isClosedDay ? (
+              <div className="closed-day-box">
+                🚫 {closureReason || 'این روز تعطیل است و نوبتی ثبت نمی‌شود.'}
+              </div>
+            ) : slots.length === 0 ? (
+              <div className="empty-slots-box">
+                ⏳ در این تاریخ زمان خالیِ پیوسته به اندازه‌ی {toPersianDigits(totalDuration)} دقیقه وجود ندارد؛ لطفاً روز دیگری را انتخاب کنید.
+              </div>
+            ) : (
+              <div className="slots-grid">
+                {slots.map((slot) => {
+                  const isSelected = selectedTime === slot.time
+                  return (
+                    <button
+                      key={slot.time}
+                      type="button"
+                      className={`slot-btn ${isSelected ? 'selected' : ''}`}
+                      onClick={() => {
+                        setSelectedTime(slot.time)
+                        clearFieldError('start_time')
+                      }}
+                    >
+                      <span className="slot-time">{toPersianDigits(slot.time)}</span>
+                      {slot.end_time && (
+                        <span className="slot-end-hint">تا {toPersianDigits(slot.end_time)}</span>
+                      )}
+                    </button>
+                  )
+                })}
+              </div>
+            )}
+
+            {fieldErrors.start_time && (
+              <p className="field-error" role="alert">
+                {fieldErrors.start_time}
+              </p>
+            )}
+
+            {selectedSlotObj && (
+              <p className="selected-time-notice">
+                زمان انتخابی شما: <strong>{toPersianDigits(selectedSlotObj.time)}</strong>
+                {selectedSlotObj.end_time
+                  ? ` تا ${toPersianDigits(selectedSlotObj.end_time)} (${toPersianDigits(totalDuration)} دقیقه)`
+                  : ''}
+              </p>
+            )}
+          </div>
+
+          {/* گام ۴: مشخصات مشتری */}
           <div className="form-row">
             <Input
               id="customerName"
-              label="نام و نام خانوادگی:"
+              label="۴. نام و نام خانوادگی:"
               type="text"
               placeholder="مثال: محمد امینی"
               value={customerName}
@@ -269,132 +443,6 @@ function BookingPage({ services, servicesLoading, servicesError, onRetryServices
               error={fieldErrors.customer_phone}
               maxLength={16}
             />
-          </div>
-
-          {servicesLoading ? (
-            <div className="form-group">
-              <label htmlFor="serviceSelect">انتخاب خدمت:</label>
-              <p className="loading-slots">در حال بارگذاری لیست خدمات...</p>
-            </div>
-          ) : services.length === 0 ? (
-            <div className="form-group">
-              <label htmlFor="serviceSelect">انتخاب خدمت:</label>
-              <Alert variant="box-error">
-                <p className="slot-error-text">
-                  ⚠️ {servicesError ? `دریافت لیست خدمات ممکن نیست (${servicesError}).` : 'هیچ خدمتی یافت نشد.'}
-                </p>
-                {onRetryServices && (
-                  <Button variant="retry-small" onClick={onRetryServices}>
-                    🔄 تلاش دوباره برای دریافت خدمات
-                  </Button>
-                )}
-              </Alert>
-              {fieldErrors.service_id && (
-                <p className="field-error" role="alert">
-                  {fieldErrors.service_id}
-                </p>
-              )}
-            </div>
-          ) : (
-            <Select
-              id="serviceSelect"
-              label="انتخاب خدمت:"
-              value={effectiveServiceId}
-              onChange={(e) => {
-                setSelectedServiceId(e.target.value)
-                clearFieldError('service_id')
-              }}
-              error={fieldErrors.service_id}
-              hint={
-                selectedService ? (
-                  <>
-                    تعرفه: <strong>{formatPrice(selectedService.price)} تومان</strong> | مدت:{' '}
-                    {selectedService.duration} دقیقه
-                  </>
-                ) : null
-              }
-            >
-              {services.map((service) => (
-                <option key={service.id} value={service.id}>
-                  {service.name} — {formatPrice(service.price)} تومان ({service.duration} دقیقه)
-                </option>
-              ))}
-            </Select>
-          )}
-
-          <Input
-            id="bookingDate"
-            label="انتخاب روز:"
-            type="date"
-            min={todayStr}
-            value={selectedDate}
-            onChange={(e) => handleDateChange(e.target.value)}
-            error={fieldErrors.date}
-          />
-
-          <div className="form-group">
-            <label>
-              انتخاب ساعت نوبت
-              {dayWorkingHours
-                ? ` (${dayWorkingHours.start_time} الی ${dayWorkingHours.end_time})`
-                : ''}
-              :
-            </label>
-            {!selectedDate ? (
-              <p className="field-hint">لطفاً ابتدا تاریخ نوبت را انتخاب کنید.</p>
-            ) : loadingSlots ? (
-              <p className="loading-slots">در حال بررسی ساعت‌های آزاد...</p>
-            ) : slotError ? (
-              <Alert variant="box-error">
-                <p className="slot-error-text">⚠️ {slotError}</p>
-                <Button variant="retry-small" onClick={handleRetrySlots}>
-                  🔄 تلاش دوباره
-                </Button>
-              </Alert>
-            ) : isClosedDay ? (
-              <div className="closed-day-box">
-                🚫 {closureReason || 'این روز تعطیل است و نوبتی ثبت نمی‌شود.'}
-              </div>
-            ) : (
-              <div className="slots-grid">
-                {slots.map((slot) => {
-                  const isSelected = selectedTime === slot.time
-                  const isDisabled = !slot.is_available
-
-                  return (
-                    <button
-                      key={slot.time}
-                      type="button"
-                      disabled={isDisabled}
-                      className={`slot-btn ${isSelected ? 'selected' : ''} ${isDisabled ? 'disabled' : ''}`}
-                      onClick={() => {
-                        setSelectedTime(slot.time)
-                        clearFieldError('start_time')
-                      }}
-                    >
-                      <span className="slot-time">{slot.time}</span>
-                      {slot.is_booked && <span className="slot-badge booked">رزرو شده</span>}
-                      {slot.is_time_off && !slot.is_booked && (
-                        <span className="slot-badge time-off">مرخصی</span>
-                      )}
-                      {slot.is_past && !slot.is_booked && !slot.is_time_off && (
-                        <span className="slot-badge past">گذشته</span>
-                      )}
-                    </button>
-                  )
-                })}
-              </div>
-            )}
-            {fieldErrors.start_time && (
-              <p className="field-error" role="alert">
-                {fieldErrors.start_time}
-              </p>
-            )}
-            {selectedTime && (
-              <p className="selected-time-notice">
-                ساعت انتخابی شما: <strong>{selectedTime}</strong>
-              </p>
-            )}
           </div>
 
           <div className="form-actions">

@@ -198,7 +198,10 @@ function AppointmentsPage() {
                   return (
                     <tr key={item.id} className={isCancelled ? 'row-cancelled' : ''}>
                       <td>
-                        <span className="time-tag">⏱ {item.start_time}</span>
+                        <span className="time-tag">
+                          ⏱ {item.start_time}
+                          {item.end_time ? ` تا ${item.end_time}` : ''}
+                        </span>
                       </td>
                       <td className="customer-name">{item.customer_name}</td>
                       <td>
@@ -206,7 +209,10 @@ function AppointmentsPage() {
                           {item.customer_phone}
                         </a>
                       </td>
-                      <td>{item.service_name}</td>
+                      <td>
+                        {item.service_name}
+                        {item.total_duration ? ` (${item.total_duration} دقیقه)` : ''}
+                      </td>
                       <td>
                         <span className={`status-tag ${isCancelled ? 'status-cancelled' : 'status-active'}`}>
                           {item.status}

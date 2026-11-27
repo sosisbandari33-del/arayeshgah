@@ -1,6 +1,11 @@
 import { Button, Card } from '../../ui'
+import { formatPrice, toPersianDigits } from '../../utils/persian'
 
 function BookingReceipt({ appointment, onNewBooking, onGoHome }) {
+  const timeLabel = appointment.end_time
+    ? `${toPersianDigits(appointment.start_time)} تا ${toPersianDigits(appointment.end_time)}`
+    : toPersianDigits(appointment.start_time)
+
   return (
     <div className="booking-container">
       <Card className="success-card">
@@ -11,7 +16,7 @@ function BookingReceipt({ appointment, onNewBooking, onGoHome }) {
         <div className="receipt-box">
           <div className="receipt-item">
             <span className="receipt-label">شماره پیگیری:</span>
-            <span className="receipt-value">#{appointment.id}</span>
+            <span className="receipt-value">#{toPersianDigits(appointment.id)}</span>
           </div>
           <div className="receipt-item">
             <span className="receipt-label">نام مشتری:</span>
@@ -19,19 +24,31 @@ function BookingReceipt({ appointment, onNewBooking, onGoHome }) {
           </div>
           <div className="receipt-item">
             <span className="receipt-label">شماره تماس:</span>
-            <span className="receipt-value">{appointment.customer_phone}</span>
+            <span className="receipt-value">{toPersianDigits(appointment.customer_phone)}</span>
           </div>
           <div className="receipt-item">
-            <span className="receipt-label">خدمت انتخابی:</span>
-            <span className="receipt-value">{appointment.service_name}</span>
+            <span className="receipt-label">خدمات انتخابی:</span>
+            <span className="receipt-value receipt-services-text">{appointment.service_name}</span>
           </div>
+          {appointment.total_duration > 0 && (
+            <div className="receipt-item">
+              <span className="receipt-label">مجموع مدت:</span>
+              <span className="receipt-value">{toPersianDigits(appointment.total_duration)} دقیقه</span>
+            </div>
+          )}
+          {appointment.total_price > 0 && (
+            <div className="receipt-item">
+              <span className="receipt-label">مجموع هزینه:</span>
+              <span className="receipt-value">{formatPrice(appointment.total_price)} تومان</span>
+            </div>
+          )}
           <div className="receipt-item">
             <span className="receipt-label">تاریخ نوبت:</span>
-            <span className="receipt-value">{appointment.date}</span>
+            <span className="receipt-value">{toPersianDigits(appointment.date)}</span>
           </div>
           <div className="receipt-item">
             <span className="receipt-label">ساعت نوبت:</span>
-            <span className="receipt-value time-badge">{appointment.start_time}</span>
+            <span className="receipt-value time-badge">{timeLabel}</span>
           </div>
           <div className="receipt-item">
             <span className="receipt-label">وضعیت:</span>
