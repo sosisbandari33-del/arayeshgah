@@ -1,5 +1,5 @@
 /* ==========================================================================
-   صفحه اصلی و لیست خدمات (Home & Services Grid)
+   صفحه اصلی خدمات مشتری و پنل مدیریت خدمات (Customer & Admin Services)
    ========================================================================== */
 
 .section-header {
@@ -58,7 +58,7 @@
   background-color: var(--primary-hover);
 }
 
-/* کارت‌های خدمات */
+/* کارت‌های خدمات در صفحه‌ی اصلی */
 .services-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
@@ -88,6 +88,8 @@
   font-weight: 700;
   color: var(--text-heading);
   margin: 0 0 1rem 0;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .service-details {
@@ -149,6 +151,170 @@
   box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
 }
 
+/* ==========================================================================
+   صفحه‌ی مدیریت خدمات در پنل مدیر (/admin/services)
+   ========================================================================== */
+
+.admin-services-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  width: 100%;
+}
+
+.admin-services-card {
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-card);
+  padding: 1.5rem 1.75rem;
+  box-shadow: var(--shadow-card);
+}
+
+.admin-services-card h3 {
+  margin: 0 0 0.35rem 0;
+  font-size: 1.3rem;
+  font-weight: 800;
+  color: var(--text-heading);
+}
+
+.admin-services-subtitle {
+  margin: 0 0 1.25rem 0;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+.service-form-grid {
+  display: grid;
+  grid-template-columns: 2fr 1.2fr 1fr;
+  gap: 1rem;
+  align-items: start;
+}
+
+.service-form-actions {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 1.15rem;
+  flex-wrap: wrap;
+}
+
+.services-admin-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: right;
+  font-size: 0.94rem;
+  min-width: 620px;
+}
+
+.services-admin-table th {
+  background-color: var(--bg-page);
+  padding: 0.85rem 1rem;
+  color: var(--text-muted);
+  font-weight: 700;
+  border-bottom: 2px solid var(--border-subtle);
+  white-space: nowrap;
+}
+
+.services-admin-table td {
+  padding: 0.9rem 1rem;
+  border-bottom: 1px solid var(--border-subtle);
+  vertical-align: middle;
+}
+
+.service-name-cell {
+  font-weight: 700;
+  color: var(--text-heading);
+  max-width: 280px;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.row-inactive td {
+  background-color: #f8fafc;
+  opacity: 0.72;
+}
+
+.service-status-pill {
+  display: inline-block;
+  padding: 0.22rem 0.7rem;
+  border-radius: var(--radius-pill);
+  font-size: 0.8rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.service-status-pill.active {
+  background-color: var(--success-bg);
+  color: var(--success);
+  border: 1px solid var(--success-border);
+}
+
+.service-status-pill.inactive {
+  background-color: #e2e8f0;
+  color: #475569;
+  border: 1px solid #cbd5e1;
+}
+
+.service-row-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  flex-wrap: wrap;
+}
+
+.btn-table-sm {
+  padding: 0.38rem 0.75rem;
+  font-size: 0.82rem;
+  border-radius: 6px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: inherit;
+  border: 1px solid var(--border-subtle);
+  background-color: #f1f5f9;
+  color: var(--text-body);
+  transition: all 0.15s;
+}
+
+.btn-table-sm:hover:not(:disabled) {
+  background-color: #e2e8f0;
+}
+
+.btn-table-sm.warn {
+  background-color: #fffbeb;
+  color: #b45309;
+  border-color: #fde68a;
+}
+
+.btn-table-sm.warn:hover:not(:disabled) {
+  background-color: #fef3c7;
+}
+
+.btn-table-sm.activate {
+  background-color: var(--success-bg);
+  color: var(--success);
+  border-color: var(--success-border);
+}
+
+.btn-table-sm.activate:hover:not(:disabled) {
+  background-color: #dcfce7;
+}
+
+.btn-table-sm.danger {
+  background-color: var(--danger-bg);
+  color: var(--danger);
+  border-color: var(--danger-border);
+}
+
+.btn-table-sm.danger:hover:not(:disabled) {
+  background-color: var(--danger);
+  color: #ffffff;
+}
+
+.locked-hint {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
 @media (max-width: 768px) {
   .section-header {
     flex-direction: column;
@@ -162,5 +328,13 @@
 
   .services-grid {
     grid-template-columns: 1fr;
+  }
+
+  .service-form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-services-card {
+    padding: 1.25rem 1rem;
   }
 }

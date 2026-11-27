@@ -10,11 +10,11 @@
 ## بخش‌های اصلی پروژه
 
 ### ۱. فرانت‌اند (`frontend/src/`)
-- **ورودی و مسیریابی (`main.jsx` و `App.jsx`):** راه‌اندازی `BrowserRouter` و نگاشت مسیرهای عمومی (`/` و `/booking`)، مسیر ورود مدیر (`/admin/login`) و مسیرهای محافظت‌شده‌ی پنل مدیریت (`/admin/appointments` زیر گارد `RequireAdminAuth` و چیدمان `AdminLayout`).
+- **ورودی و مسیریابی (`main.jsx` و `App.jsx`):** راه‌اندازی `BrowserRouter` و نگاشت مسیرهای عمومی (`/` و `/booking`)، مسیر ورود مدیر (`/admin/login`) و مسیرهای محافظت‌شده‌ی پنل مدیریت (`/admin/appointments` و `/admin/services` زیر گارد `RequireAdminAuth` و چیدمان `AdminLayout`).
 - **اجزای عمومی رابط کاربری (`ui/`):** کامپوننت‌های پایه‌ی قابل استفاده در کل برنامه شامل `Button`، `Card`، `Input`، `Select`، `Modal` و `Alert`.
 - **پوشه‌ی فیچرها (`features/`):**
   - `features/auth/`: صفحه‌ی ورود مدیر (`AdminLoginPage`)، گارد دسترسی (`RequireAdminAuth`)، پوسته‌ی پنل مدیریت و خروج (`AdminLayout`)، ذخیره‌سازی نشست (`authStorage.js`)، `authApi.js` و `auth.css`.
-  - `features/services/`: `ServicesPage`، `ServiceCard`، `servicesApi.js`، `services.css`.
+  - `features/services/`: `ServicesPage` (نمایش خدمات فعال به مشتری)، `AdminServicesPage` (مدیریت خدمات توسط صاحب کار)، `ServiceCard`، `servicesApi.js`، `services.css`.
   - `features/booking/`: `BookingPage`، `BookingReceipt`، `bookingApi.js`، `booking.css`.
   - `features/appointments/`: `AppointmentsPage`، `CancelAppointmentModal`، `appointmentsApi.js`، `appointments.css`.
 - **پوسته‌ی مشترک و ابزارها:** `components/` (`Header` و `Footer`)، هسته‌ی مرکزی درخواست‌های شبکه (`api/client.js` روی `/api` با ارسال خودکار هدر `Bearer` و پاک‌سازی نشست در صورت دریافت `401`)، توابع کمکی (`utils/date.js` و `utils/persian.js`) و استایل‌های پایه (`styles/tokens.css` و `styles/layout.css`).
@@ -31,7 +31,7 @@
 ### ۳. دیتابیس (`barbershop.db`)
 دیتابیس شامل جداول زیر است (برای ستون‌های دقیق، فایل‌های `backend/migrations/` را بخوانید):
 - **`schema_migrations`:** ثبت نسخه‌ی migrationهای اجراشده.
-- **`services`:** نگهداری لیست خدمات، قیمت و مدت‌زمان.
+- **`services`:** نگهداری لیست خدمات، قیمت، مدت‌زمان (به دقیقه) و وضعیت فعال/غیرفعال (`is_active`).
 - **`appointments`:** نگهداری نوبت‌ها با کلید خارجی به `services`، `created_at` محلی و شاخص یکتایی جزئی `idx_unique_active_slot`.
 - **`admin_users`:** نگهداری شماره‌ی موبایل یکتا و هش رمز عبور مدیر.
 

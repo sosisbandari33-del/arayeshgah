@@ -1,8 +1,13 @@
-from migrations import m001_initial_schema, m002_create_admin_users
+from migrations import (
+    m001_initial_schema,
+    m002_create_admin_users,
+    m003_add_service_is_active,
+)
 
 MIGRATIONS = [
     (m001_initial_schema.VERSION, m001_initial_schema.upgrade),
     (m002_create_admin_users.VERSION, m002_create_admin_users.upgrade),
+    (m003_add_service_is_active.VERSION, m003_add_service_is_active.upgrade),
 ]
 
 

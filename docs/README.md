@@ -11,7 +11,7 @@
 | قانون‌نامه‌ی ایجنت (ممنوع‌ها، «اول از انسان بپرس» و استانداردهای فنی پروژه) | [docs/AGENT_RULES.md](AGENT_RULES.md) |
 | شناخت بخش‌های فنی فعلی، پشته فنی، دیتابیس و نحوه‌ی ارتباط فرانت و بک‌اند | [docs/architecture/overview.md](architecture/overview.md) |
 | وضعیت فعلی ورود مدیر، توکن دسترسی و حفاظت پنل مدیریت | [docs/features/admin-auth.md](features/admin-auth.md) |
-| وضعیت فعلی نمایش خدمات و تعرفه‌ها | [docs/features/services.md](features/services.md) |
+| وضعیت فعلی نمایش خدمات به مشتری و مدیریت خدمات در پنل صاحب کار | [docs/features/services.md](features/services.md) |
 | وضعیت فعلی رزرو نوبت (به‌روزرسانی هم‌زمان با تسک‌های سطح ۲) | [docs/features/booking.md](features/booking.md) |
 | وضعیت فعلی پنل مدیریت و لغو نوبت (محافظت‌شده با ورود مدیر) | [docs/features/appointments-management.md](features/appointments-management.md) |
 | نصب، راه‌اندازی روی کامپیوتر تازه و اجرای تست‌ها | [README.md](../README.md) |
