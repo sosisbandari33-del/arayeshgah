@@ -1,4 +1,5 @@
 import os
+import secrets
 import sqlite3
 
 from migrations.runner import run_migrations
@@ -299,6 +300,19 @@ def get_active_appointment_intervals(date_str: str) -> list[dict]:
         conn.close()
 
 
+def _generate_unique_tracking_code(cursor) -> str:
+    """تولید کد پیگیری ۶ رقمی تصادفی یکتا برای هر نوبت"""
+    for _ in range(50):
+        code = f"{100000 + secrets.randbelow(900000)}"
+        cursor.execute(
+            "SELECT 1 FROM appointments WHERE tracking_code = ?",
+            (code,),
+        )
+        if cursor.fetchone() is None:
+            return code
+    raise RuntimeError("خطا در تولید کد پیگیری یکتا")
+
+
 def create_appointment(
     customer_name: str,
     customer_phone: str,
@@ -357,6 +371,8 @@ def create_appointment(
                 conn.execute("ROLLBACK")
                 raise sqlite3.IntegrityError("OVERLAP_CONFLICT")
 
+        tracking_code = _generate_unique_tracking_code(cursor)
+
         cursor.execute(
             """
             INSERT INTO appointments (
@@ -369,10 +385,11 @@ def create_appointment(
                 end_time,
                 total_duration,
                 total_price,
+                tracking_code,
                 status,
                 created_at
             )
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'رزرو شده', datetime('now', 'localtime'))
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'رزرو شده', datetime('now', 'localtime'))
             """,
             (
                 customer_name,
@@ -384,6 +401,7 @@ def create_appointment(
                 final_end_time,
                 final_duration,
                 final_price,
+                tracking_code,
             ),
         )
         new_id = cursor.lastrowid
@@ -419,7 +437,7 @@ def get_appointments_by_date(date_str: str):
             """
             SELECT
                 id, customer_name, customer_phone, service_id, service_name,
-                date, start_time, end_time, total_duration, total_price, status, created_at
+                date, start_time, end_time, total_duration, total_price, tracking_code, status, created_at
             FROM appointments
             WHERE date = ?
             ORDER BY start_time ASC
@@ -428,6 +446,45 @@ def get_appointments_by_date(date_str: str):
         )
         rows = cursor.fetchall()
         return _attach_appointment_services(cursor, rows)
+    finally:
+        conn.close()
+
+
+def get_appointment_by_phone_and_tracking(customer_phone: str, tracking_code: str):
+    """جستجوی دقیق یک نوبت فقط با تطابق هم‌زمان شماره موبایل و کد پیگیری ۶ رقمی (قانون R9)"""
+    conn = get_connection()
+    try:
+        cursor = conn.cursor()
+        cursor.execute(
+            """
+            SELECT *
+            FROM appointments
+            WHERE customer_phone = ? AND tracking_code = ?
+            """,
+            (customer_phone, tracking_code),
+        )
+        row = cursor.fetchone()
+        if not row:
+            return None
+        return _attach_appointment_services(cursor, [row])[0]
+    finally:
+        conn.close()
+
+
+def get_cancel_deadline_hours() -> int:
+    """خواندن مهلت لغو نوبت (به ساعت) از جدول تنظیمات؛ پیش‌فرض ۲ ساعت قبل (قانون R9)"""
+    conn = get_connection()
+    try:
+        cursor = conn.cursor()
+        cursor.execute(
+            "SELECT value FROM app_settings WHERE key = 'cancel_deadline_hours'"
+        )
+        row = cursor.fetchone()
+        if row is None:
+            return 2
+        return max(0, int(row["value"]))
+    except (ValueError, sqlite3.Error):
+        return 2
     finally:
         conn.close()
 

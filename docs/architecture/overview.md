@@ -10,13 +10,14 @@
 ## بخش‌های اصلی پروژه
 
 ### ۱. فرانت‌اند (`frontend/src/`)
-- **ورودی و مسیریابی (`main.jsx` و `App.jsx`):** راه‌اندازی `BrowserRouter` و نگاشت مسیرهای عمومی (`/` و `/booking`)، مسیر ورود مدیر (`/admin/login`) و مسیرهای محافظت‌شده‌ی پنل مدیریت (`/admin/appointments`، `/admin/services` و `/admin/schedule` زیر گارد `RequireAdminAuth` و چیدمان `AdminLayout`).
+- **ورودی و مسیریابی (`main.jsx` و `App.jsx`):** راه‌اندازی `BrowserRouter` و نگاشت مسیرهای عمومی (`/`، `/booking` و `/tracking`)، مسیر ورود مدیر (`/admin/login`) و مسیرهای محافظت‌شده‌ی پنل مدیریت (`/admin/appointments`، `/admin/services` و `/admin/schedule` زیر گارد `RequireAdminAuth` و چیدمان `AdminLayout`).
 - **اجزای عمومی رابط کاربری (`ui/`):** کامپوننت‌های پایه‌ی قابل استفاده در کل برنامه شامل `Button`، `Card`، `Input`، `Select`، `Modal` و `Alert`.
 - **پوشه‌ی فیچرها (`features/`):**
   - `features/auth/`: صفحه‌ی ورود مدیر (`AdminLoginPage`)، گارد دسترسی (`RequireAdminAuth`)، پوسته‌ی پنل مدیریت و خروج (`AdminLayout`)، ذخیره‌سازی نشست (`authStorage.js`)، `authApi.js` و `auth.css`.
   - `features/services/`: `ServicesPage` (نمایش خدمات فعال به مشتری)، `AdminServicesPage` (مدیریت خدمات توسط صاحب کار)، `ServiceCard`، `servicesApi.js`، `services.css`.
   - `features/schedule/`: `AdminSchedulePage` (مدیریت ساعات کاری هفتگی، تعطیلی‌ها و مرخصی‌ها همراه با هشدار تداخل)، `scheduleApi.js`، `schedule.css`.
-  - `features/booking/`: `BookingPage`، `BookingReceipt`، `bookingApi.js`، `booking.css`.
+  - `features/booking/`: ویزارد ۴ مرحله‌ای رزرو مشتری (`BookingPage`)، صفحه‌ی خلاصه و کد پیگیری ۶ رقمی (`BookingReceipt`)، `bookingApi.js`، `booking.css`.
+  - `features/tracking/`: صفحه‌ی پیگیری و لغو نوبت مشتری بر اساس قانون `R9` (`TrackingPage`، `trackingApi.js`، `tracking.css`).
   - `features/appointments/`: `AppointmentsPage`، `CancelAppointmentModal`، `appointmentsApi.js`، `appointments.css`.
 - **پوسته‌ی مشترک و ابزارها:** `components/` (`Header` و `Footer`)، هسته‌ی مرکزی درخواست‌های شبکه (`api/client.js` روی `/api` با ارسال خودکار هدر `Bearer` و پاک‌سازی نشست در صورت دریافت `401`)، توابع کمکی (`utils/date.js` و `utils/persian.js`) و استایل‌های پایه (`styles/tokens.css` و `styles/layout.css`).
 
@@ -33,7 +34,8 @@
 دیتابیس شامل جداول زیر است (برای ستون‌های دقیق، فایل‌های `backend/migrations/` را بخوانید):
 - **`schema_migrations`:** ثبت نسخه‌ی migrationهای اجراشده.
 - **`services`:** نگهداری لیست خدمات، قیمت، مدت‌زمان (به دقیقه) و وضعیت فعال/غیرفعال (`is_active`).
-- **`appointments` و `appointment_services`:** نگهداری نوبت‌ها (شامل ساعت شروع و پایان، مجموع مدت، مجموع قیمت و `created_at` محلی) و نگاشت یک یا چند خدمت هر نوبت با کلید خارجی به `services`.
+- **`appointments` و `appointment_services`:** نگهداری نوبت‌ها (شامل ساعت شروع و پایان، مجموع مدت، مجموع قیمت، `tracking_code` یکتای ۶ رقمی و `created_at` محلی) و نگاشت یک یا چند خدمت هر نوبت با کلید خارجی به `services`.
+- **`app_settings`:** نگهداری تنظیمات کلید-مقدار برنامه (از جمله `cancel_deadline_hours` با پیش‌فرض `2` ساعت برای مهلت لغو مشتری).
 - **`admin_users`:** نگهداری شماره‌ی موبایل یکتا و هش رمز عبور مدیر.
 - **`working_hours`:** نگهداری ساعت شروع، پایان و وضعیت تعطیلی هر یک از ۷ روز هفته (شنبه تا جمعه).
 - **`time_offs`:** نگهداری تعطیلی‌های تاریخ خاص و مرخصی‌های چندساعته در یک روز.
