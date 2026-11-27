@@ -8,7 +8,7 @@
 
 * **فرانت‌اند:** React (Vite) + `react-router-dom` با معماری فیچرمحور (`ui/`, `features/`, `api/`, `utils/`, `styles/`)، پشتیبانی کامل از چینش راست‌چین (RTL)، فونت استاندارد وزیرمتن و طراحی واکنش‌گرا روی موبایل، تبلت و دسکتاپ.
 * **بک‌اند:** FastAPI (Python) با تفکیک لایه‌ی دریافت درخواست (`routes/`) از منطق کسب‌وکار (`services/`) و دیتابیس (`database.py`)، همراه با اعتبارسنجی مستقل ورودی‌ها، نرمال‌سازی ارقام فارسی و عربی و تنظیمات CORS.
-* **دیتابیس:** SQLite (`backend/barbershop.db`) شامل جداول خدمات (`services`) و نوبت‌ها (`appointments`).
+* **دیتابیس:** SQLite (`backend/barbershop.db`) با سیستم migration نسخه‌دار شامل جداول مدیران (`admins`)، خدمات (`services`)، ساعات کاری هفتگی (`working_hours`)، تعطیلی‌ها و مرخصی‌ها (`time_offs`) و نوبت‌ها (`appointments`).
 
 ---
 
@@ -21,8 +21,8 @@ arayeshgah/
 │   ├── config.py            # خواندن متمرکز تنظیمات از .env
 │   ├── schemas.py           # مدل‌های ورودی Pydantic
 │   ├── migrations/          # migrationهای نسخه‌دار SQLite
-│   ├── routes/              # لایه‌ی دریافت درخواست HTTP (health, services, auth, appointments)
-│   ├── services/            # لایه‌ی منطق کسب‌وکار مستقل از HTTP (catalog, auth, appointments, errors)
+│   ├── routes/              # لایه‌ی دریافت درخواست HTTP (health, services, auth, schedule, appointments)
+│   ├── services/            # لایه‌ی منطق کسب‌وکار مستقل از HTTP (catalog, auth, schedule, appointments, errors)
 │   ├── database.py          # لایه‌ی دسترسی به SQLite و کوئری‌ها
 │   ├── pytest.ini           # تنظیمات ابزار تست pytest
 │   ├── tests/               # تست‌های خودکار HTTP برای همه‌ی اندپوینت‌ها (pytest + TestClient)
@@ -36,9 +36,10 @@ arayeshgah/
 │   │   ├── ui/                  # اجزای عمومی رابط کاربری (Button, Card, Input, Select, Modal, Alert)
 │   │   ├── features/
 │   │   │   ├── auth/            # فیچر ورود و پنل مدیریت (AdminLoginPage, RequireAdminAuth, AdminLayout)
-│   │   │   ├── services/        # فیچر خدمات (ServicesPage, ServiceCard, servicesApi, services.css)
+│   │   │   ├── services/        # فیچر خدمات مشتری و مدیر (ServicesPage, AdminServicesPage, ServiceCard, servicesApi)
+│   │   │   ├── schedule/        # فیچر ساعات کاری، تعطیلی‌ها و مرخصی‌ها (AdminSchedulePage, scheduleApi, schedule.css)
 │   │   │   ├── booking/         # فیچر رزرو نوبت (BookingPage, BookingReceipt, bookingApi, booking.css)
-│   │   │   └── appointments/    # فیچر مدیریت نوبت‌ها (AppointmentsPage, CancelAppointmentModal, appointmentsApi, appointments.css)
+│   │   │   └── appointments/    # فیچر مدیریت نوبت‌ها (AppointmentsPage, CancelAppointmentModal, appointmentsApi)
 │   │   ├── components/          # پوسته‌ی مشترک صفحه (Header, Footer)
 │   │   ├── utils/               # توابع کمکی تاریخ محلی و ارقام فارسی
 │   │   ├── styles/              # متغیرهای سیستم طراحی (tokens.css) و چیدمان پایه (layout.css)
@@ -54,9 +55,11 @@ arayeshgah/
 │   ├── product/
 │   │   └── PRD.md           # سند محصول و محدوده‌ی فعلی
 │   ├── features/
-│   │   ├── services.md      # FRD خدمات و تعرفه‌ها
-│   │   ├── booking.md       # FRD رزرو نوبت (شامل قوانین R1 تا R3)
-│   │   └── appointments-management.md # FRD مدیریت نوبت‌ها (شامل قانون R4)
+│   │   ├── admin-auth.md    # FRD احراز هویت مدیر و پنل مدیریت (شامل R11)
+│   │   ├── services.md      # FRD خدمات و تعرفه‌ها (شامل R5 و R8)
+│   │   ├── working-hours.md # FRD ساعات کاری، تعطیلی‌ها و مرخصی‌ها (شامل R6 و R7)
+│   │   ├── booking.md       # FRD رزرو نوبت (شامل R1 تا R3 و R10)
+│   │   └── appointments-management.md # FRD مدیریت نوبت‌ها (شامل R4)
 │   └── architecture/
 │       └── overview.md      # نمای کلی معماری و ارتباط بخش‌های سیستم
 ├── AGENTS.md                # پروتکل ۵ فازی کار ایجنت

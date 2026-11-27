@@ -28,6 +28,9 @@ function BookingPage({ services, servicesLoading, servicesError, onRetryServices
   const [selectedTime, setSelectedTime] = useState('')
 
   const [slots, setSlots] = useState([])
+  const [isClosedDay, setIsClosedDay] = useState(false)
+  const [closureReason, setClosureReason] = useState(null)
+  const [dayWorkingHours, setDayWorkingHours] = useState(null)
   const [loadingSlots, setLoadingSlots] = useState(true)
   const [slotError, setSlotError] = useState(null)
   const [slotsRefreshKey, setSlotsRefreshKey] = useState(0)
@@ -53,12 +56,18 @@ function BookingPage({ services, servicesLoading, servicesError, onRetryServices
       .then((data) => {
         if (!active) return
         setSlots(data.slots || [])
+        setIsClosedDay(Boolean(data.is_closed_day))
+        setClosureReason(data.closure_reason || null)
+        setDayWorkingHours(data.working_hours || null)
         setSlotError(null)
         setLoadingSlots(false)
       })
       .catch((err) => {
         if (!active || err.name === 'AbortError') return
         setSlots([])
+        setIsClosedDay(false)
+        setClosureReason(null)
+        setDayWorkingHours(null)
         setSlotError(err.message)
         setLoadingSlots(false)
       })
@@ -324,7 +333,13 @@ function BookingPage({ services, servicesLoading, servicesError, onRetryServices
           />
 
           <div className="form-group">
-            <label>انتخاب ساعت نوبت (بازه‌های ۳۰ دقیقه‌ای از ۱۰:۰۰ الی ۲۰:۰۰):</label>
+            <label>
+              انتخاب ساعت نوبت
+              {dayWorkingHours
+                ? ` (${dayWorkingHours.start_time} الی ${dayWorkingHours.end_time})`
+                : ''}
+              :
+            </label>
             {!selectedDate ? (
               <p className="field-hint">لطفاً ابتدا تاریخ نوبت را انتخاب کنید.</p>
             ) : loadingSlots ? (
@@ -336,6 +351,10 @@ function BookingPage({ services, servicesLoading, servicesError, onRetryServices
                   🔄 تلاش دوباره
                 </Button>
               </Alert>
+            ) : isClosedDay ? (
+              <div className="closed-day-box">
+                🚫 {closureReason || 'این روز تعطیل است و نوبتی ثبت نمی‌شود.'}
+              </div>
             ) : (
               <div className="slots-grid">
                 {slots.map((slot) => {
@@ -355,7 +374,12 @@ function BookingPage({ services, servicesLoading, servicesError, onRetryServices
                     >
                       <span className="slot-time">{slot.time}</span>
                       {slot.is_booked && <span className="slot-badge booked">رزرو شده</span>}
-                      {slot.is_past && <span className="slot-badge past">گذشته</span>}
+                      {slot.is_time_off && !slot.is_booked && (
+                        <span className="slot-badge time-off">مرخصی</span>
+                      )}
+                      {slot.is_past && !slot.is_booked && !slot.is_time_off && (
+                        <span className="slot-badge past">گذشته</span>
+                      )}
                     </button>
                   )
                 })}

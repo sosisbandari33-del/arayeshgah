@@ -154,6 +154,22 @@
   background-color: #e2e8f0;
 }
 
+.slot-badge.time-off {
+  color: #b45309;
+  background-color: #fef3c7;
+}
+
+.closed-day-box {
+  background-color: #fffbeb;
+  border: 1px solid #fde68a;
+  color: #92400e;
+  border-radius: var(--radius-element);
+  padding: 1rem 1.2rem;
+  font-weight: 700;
+  font-size: 0.93rem;
+  margin-top: 0.4rem;
+}
+
 .selected-time-notice {
   font-size: 0.92rem;
   color: var(--success);

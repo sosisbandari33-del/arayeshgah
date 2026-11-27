@@ -1,6 +1,7 @@
 const ALERT_CLASSES = {
   error: 'error-alert',
   success: 'success-banner',
+  warning: 'warning-banner',
   'box-error': 'slot-error-box',
 }
 

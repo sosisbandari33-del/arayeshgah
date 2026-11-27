@@ -1,0 +1,199 @@
+/* ==========================================================================
+   مدیریت ساعات کاری هفتگی، تعطیلی‌ها و مرخصی‌ها (/admin/schedule)
+   ========================================================================== */
+
+.admin-schedule-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  width: 100%;
+}
+
+.schedule-card {
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-card);
+  padding: 1.5rem 1.75rem;
+  box-shadow: var(--shadow-card);
+}
+
+.schedule-card h3 {
+  margin: 0 0 0.35rem 0;
+  font-size: 1.3rem;
+  font-weight: 800;
+  color: var(--text-heading);
+}
+
+.schedule-subtitle {
+  margin: 0 0 1.25rem 0;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+.weekly-hours-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+}
+
+.weekday-row {
+  display: grid;
+  grid-template-columns: 110px 120px 1fr 1fr;
+  align-items: start;
+  gap: 0.85rem;
+  padding: 0.8rem 1rem;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-element);
+  background-color: #ffffff;
+}
+
+.weekday-row.closed {
+  background-color: #f8fafc;
+}
+
+.weekday-name {
+  font-weight: 800;
+  color: var(--text-heading);
+  padding-top: 0.5rem;
+}
+
+.closed-toggle-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--text-body);
+  cursor: pointer;
+  padding-top: 0.5rem;
+}
+
+.time-field-inline {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.time-field-inline span {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.time-field-inline input[type="time"] {
+  padding: 0.5rem 0.7rem;
+  border: 1px solid var(--border-subtle);
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 0.92rem;
+  direction: ltr;
+  background-color: #ffffff;
+}
+
+.time-field-inline input[type="time"]:disabled {
+  background-color: #e2e8f0;
+  color: #94a3b8;
+  cursor: not-allowed;
+}
+
+/* فرم ثبت تعطیلی یا مرخصی */
+.timeoff-mode-switch {
+  display: flex;
+  gap: 0.75rem;
+  margin-bottom: 1.1rem;
+  flex-wrap: wrap;
+}
+
+.mode-radio-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.5rem 1rem;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-pill);
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+  background-color: #f8fafc;
+}
+
+.mode-radio-pill.selected {
+  background-color: var(--primary-light);
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+.timeoff-form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 1rem;
+  align-items: start;
+}
+
+.timeoff-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: right;
+  font-size: 0.93rem;
+  min-width: 560px;
+}
+
+.timeoff-table th {
+  background-color: var(--bg-page);
+  padding: 0.8rem 1rem;
+  color: var(--text-muted);
+  font-weight: 700;
+  border-bottom: 2px solid var(--border-subtle);
+  white-space: nowrap;
+}
+
+.timeoff-table td {
+  padding: 0.85rem 1rem;
+  border-bottom: 1px solid var(--border-subtle);
+  vertical-align: middle;
+}
+
+.reason-cell {
+  max-width: 260px;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  color: var(--text-body);
+}
+
+.conflict-list {
+  margin: 0.65rem 0 0 0;
+  padding-right: 1.2rem;
+  font-size: 0.88rem;
+  line-height: 1.7;
+}
+
+.warning-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 0.75rem;
+}
+
+.warning-close-btn {
+  background: transparent;
+  border: 1px solid #d97706;
+  color: #92400e;
+  border-radius: 6px;
+  padding: 0.2rem 0.6rem;
+  font-family: inherit;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+@media (max-width: 768px) {
+  .weekday-row {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .schedule-card {
+    padding: 1.25rem 1rem;
+  }
+}

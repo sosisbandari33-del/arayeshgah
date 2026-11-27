@@ -16,18 +16,15 @@ from services.errors import (
     NotFoundDomainError,
     ValidationDomainError,
 )
+from services.schedule import (
+    get_any_open_day_allowed_slots,
+    get_day_schedule_context,
+    is_slot_in_partial_leave,
+    parse_hhmm_to_minutes,
+)
 
 DATE_PATTERN = re.compile(r"^\d{4}-\d{2}-\d{2}$")
 PHONE_PATTERN = re.compile(r"^09\d{9}$")
-
-# بازه‌های کاری ۳۰ دقیقه‌ای از ساعت ۱۰:۰۰ الی ۲۰:۰۰ (طبق قانون R1)
-WORKING_SLOTS = [
-    "10:00", "10:30", "11:00", "11:30",
-    "12:00", "12:30", "13:00", "13:30",
-    "14:00", "14:30", "15:00", "15:30",
-    "16:00", "16:30", "17:00", "17:30",
-    "18:00", "18:30", "19:00", "19:30",
-]
 
 
 def normalize_digits(text: str) -> str:
@@ -62,29 +59,50 @@ def parse_strict_date(date_str: str) -> tuple[dt_date, str]:
 
 
 def get_daily_slots_logic(date_str: str):
-    """محاسبه‌ی وضعیت آزاد، رزروشده و گذشته بودن بازه‌های یک روز"""
+    """محاسبه‌ی وضعیت آزاد، رزروشده، گذشته و مرخصی بودن بازه‌های یک روز (قوانین R6 و R7)"""
     selected_date, normalized_date = parse_strict_date(date_str)
+    day_ctx = get_day_schedule_context(selected_date, normalized_date)
+
+    if day_ctx["is_closed_day"]:
+        return {
+            "date": normalized_date,
+            "is_closed_day": True,
+            "closure_reason": day_ctx["closure_reason"],
+            "working_hours": None,
+            "slots": [],
+        }
+
     booked = get_booked_slots(normalized_date)
     now = datetime.now()
+    partial_leaves = day_ctx["partial_leaves"]
 
     slots_status = []
-    for slot in WORKING_SLOTS:
+    for slot in day_ctx["allowed_slots"]:
         slot_hour, slot_minute = map(int, slot.split(":"))
+        slot_min = slot_hour * 60 + slot_minute
         slot_datetime = datetime.combine(selected_date, dt_time(slot_hour, slot_minute))
 
-        # بررسی قانون R3: آیا زمان در گذشته است؟
         is_past = slot_datetime < now
         is_booked = slot in booked
+        is_time_off = is_slot_in_partial_leave(slot_min, 30, partial_leaves)
 
         slots_status.append({
             "time": slot,
-            "is_available": (not is_booked) and (not is_past),
+            "is_available": (not is_booked) and (not is_past) and (not is_time_off),
             "is_booked": is_booked,
             "is_past": is_past,
+            "is_time_off": is_time_off,
         })
 
+    wh = day_ctx["working_hours"]
     return {
         "date": normalized_date,
+        "is_closed_day": False,
+        "closure_reason": None,
+        "working_hours": {
+            "start_time": wh["start_time"],
+            "end_time": wh["end_time"],
+        },
         "slots": slots_status,
     }
 
@@ -96,17 +114,17 @@ def book_appointment_logic(
     date_str: str,
     start_time: str,
 ):
-    """اعتبارسنجی مستقل همه‌ی ورودی‌ها (با خطای فیلدبه‌فیلد 422) و اعمال قوانین کسب‌وکار"""
+    """اعتبارسنجی مستقل ورودی‌ها (422) و اعمال قوانین R6، R7، R3 و R2"""
     field_errors: dict[str, str] = {}
 
-    # ۱. اعتبارسنجی نام مشتری (قانون R10: خالی نباشد، بین ۲ تا ۵۰ کاراکتر)
+    # ۱. اعتبارسنجی نام مشتری (قانون R10)
     name = (customer_name or "").strip()
     if not name:
         field_errors["customer_name"] = "نام و نام خانوادگی نمی‌تواند خالی باشد."
     elif len(name) < 2 or len(name) > 50:
         field_errors["customer_name"] = "نام و نام خانوادگی باید بین ۲ تا ۵۰ کاراکتر باشد."
 
-    # ۲. اعتبارسنجی شماره موبایل (قانون R10: ۱۱ رقم و با ۰۹ شروع شود، پشتیبانی از ارقام فارسی/عربی)
+    # ۲. اعتبارسنجی شماره موبایل (قانون R10)
     normalized_phone = normalize_digits((customer_phone or "").strip())
     clean_phone = re.sub(r"[\s-]+", "", normalized_phone)
     if not clean_phone:
@@ -124,17 +142,52 @@ def book_appointment_logic(
     if date_err:
         field_errors["date"] = date_err
 
-    # ۵. اعتبارسنجی ساعت انتخابی (قانون R1)
-    clean_time = (start_time or "").strip()
-    if not clean_time:
+    # ۵. اعتبارسنجی ساعت انتخابی و تطبیق با ساعت کاری روز باز (R6)
+    raw_time = (start_time or "").strip()
+    slot_min, clean_time = parse_hhmm_to_minutes(raw_time)
+    day_ctx = None
+
+    if not raw_time:
         field_errors["start_time"] = "انتخاب ساعت نوبت الزامی است."
-    elif clean_time not in WORKING_SLOTS:
-        field_errors["start_time"] = "ساعت انتخابی خارج از ساعات کاری (۱۰ تا ۲۰) یا بازه‌های ۳۰ دقیقه‌ای است."
+    elif slot_min is None or clean_time is None:
+        field_errors["start_time"] = "فرمت ساعت انتخابی نامعتبر است (باید HH:MM باشد)."
+    elif app_date is not None and normalized_date is not None:
+        day_ctx = get_day_schedule_context(app_date, normalized_date)
+        if not day_ctx["is_closed_day"] and clean_time not in day_ctx["allowed_slots"]:
+            wh = day_ctx["working_hours"]
+            field_errors["start_time"] = (
+                f"ساعت انتخابی خارج از ساعات کاری این روز ({wh['start_time']} تا {wh['end_time']}) یا بازه‌های ۳۰ دقیقه‌ای است."
+            )
+    else:
+        any_allowed = get_any_open_day_allowed_slots()
+        if any_allowed and clean_time not in any_allowed:
+            field_errors["start_time"] = "ساعت انتخابی خارج از ساعات کاری و بازه‌های ۳۰ دقیقه‌ای مجاز است."
 
     if field_errors:
         raise FieldValidationError(field_errors)
 
-    assert app_date is not None and normalized_date is not None and service is not None
+    assert (
+        app_date is not None
+        and normalized_date is not None
+        and service is not None
+        and clean_time is not None
+        and slot_min is not None
+    )
+
+    if day_ctx is None:
+        day_ctx = get_day_schedule_context(app_date, normalized_date)
+
+    # اعتبارسنجی قانون R7: جلوگیری از ثبت نوبت در روز تعطیل هفتگی یا تاریخ تعطیل خاص
+    if day_ctx["is_closed_day"]:
+        raise ValidationDomainError(
+            day_ctx["closure_reason"] or "این روز تعطیل است و امکان ثبت نوبت وجود ندارد."
+        )
+
+    # اعتبارسنجی قانون R7: جلوگیری از ثبت نوبت در ساعات مرخصی
+    if is_slot_in_partial_leave(slot_min, 30, day_ctx["partial_leaves"]):
+        raise ValidationDomainError(
+            "این ساعت در بازه‌ی مرخصی آرایشگاه قرار دارد و امکان ثبت نوبت وجود ندارد."
+        )
 
     hour, minute = map(int, clean_time.split(":"))
     app_datetime = datetime.combine(app_date, dt_time(hour, minute))

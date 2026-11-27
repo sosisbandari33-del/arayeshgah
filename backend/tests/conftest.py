@@ -46,9 +46,17 @@ def admin_headers(client):
 
 @pytest.fixture
 def future_date():
-    return (date.today() + timedelta(days=3)).strftime("%Y-%m-%d")
+    """انتخاب یک تاریخ آینده‌ی کاری (غیر از جمعه که پیش‌فرض تعطیل است)"""
+    d = date.today() + timedelta(days=3)
+    while d.weekday() == 4:  # 4 = Friday
+        d += timedelta(days=1)
+    return d.strftime("%Y-%m-%d")
 
 
 @pytest.fixture
 def past_date():
-    return (date.today() - timedelta(days=2)).strftime("%Y-%m-%d")
+    """انتخاب یک تاریخ گذشته‌ی غیرجمعه"""
+    d = date.today() - timedelta(days=2)
+    while d.weekday() == 4:  # 4 = Friday
+        d -= timedelta(days=1)
+    return d.strftime("%Y-%m-%d")
