@@ -1,5 +1,6 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 
+from routes.auth import require_admin
 from schemas import AppointmentCreate
 from services.appointments import (
     book_appointment_logic,
@@ -28,10 +29,12 @@ def book_appointment(appointment_data: AppointmentCreate):
 
 
 @router.get("/appointments")
-def list_appointments(date: str):
+def list_appointments(date: str, _admin: dict = Depends(require_admin)):
     return list_appointments_logic(date)
 
 
 @router.patch("/appointments/{appointment_id}/cancel")
-def cancel_appointment_endpoint(appointment_id: int):
+def cancel_appointment_endpoint(
+    appointment_id: int, _admin: dict = Depends(require_admin)
+):
     return cancel_appointment_logic(appointment_id)

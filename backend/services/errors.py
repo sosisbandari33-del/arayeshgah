@@ -16,6 +16,10 @@ class FieldValidationError(DomainError):
         super().__init__(summary)
 
 
+class UnauthorizedDomainError(DomainError):
+    """خطای عدم احراز هویت یا رمز/توکن نامعتبر (HTTP 401)"""
+
+
 class ValidationDomainError(DomainError):
     """خطای نقض قوانین کسب‌وکار روی ورودی معتبر"""
 

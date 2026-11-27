@@ -1,3 +1,5 @@
+import { clearAdminSession, getAdminToken } from '../features/auth/authStorage'
+
 const DEFAULT_NETWORK_ERROR =
   'برقراری ارتباط با سرور ممکن نیست. لطفاً مطمئن شوید سرور بک‌اند در حال اجراست.'
 
@@ -16,7 +18,7 @@ function extractServerError(data, fallback) {
 
 /**
  * لایه‌ی مرکزی ارسال درخواست به API بک‌اند (مسیر یکپارچه‌ی /api)
- * آماده‌ی افزودن هدر احراز هویت (Authorization) در سطح ۲
+ * ارسال خودکار توکن مدیر و مدیریت نشست منقضی‌شده (401)
  */
 export async function requestJson(
   path,
@@ -25,6 +27,8 @@ export async function requestJson(
     body,
     signal,
     timeoutMs = 0,
+    withAuth = true,
+    clearOnUnauthorized = true,
     fallbackError = 'خطایی در ارتباط با سرور رخ داد.',
     networkError = DEFAULT_NETWORK_ERROR,
   } = {}
@@ -52,6 +56,12 @@ export async function requestJson(
   if (body !== undefined) {
     headers['Content-Type'] = 'application/json'
   }
+  if (withAuth) {
+    const token = getAdminToken()
+    if (token) {
+      headers.Authorization = `Bearer ${token}`
+    }
+  }
 
   try {
     const res = await fetch(path, {
@@ -69,6 +79,9 @@ export async function requestJson(
     }
 
     if (!res.ok) {
+      if (res.status === 401 && clearOnUnauthorized) {
+        clearAdminSession()
+      }
       const serverErr = new Error(extractServerError(data, fallbackError))
       serverErr.isServerResponse = true
       serverErr.status = res.status

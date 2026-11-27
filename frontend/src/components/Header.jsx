@@ -2,6 +2,7 @@ import { Link, useLocation } from 'react-router-dom'
 
 function Header({ onEnsureServices }) {
   const { pathname } = useLocation()
+  const isAdminSection = pathname.startsWith('/admin')
 
   return (
     <header className="header">
@@ -31,9 +32,9 @@ function Header({ onEnsureServices }) {
             </Link>
           )}
 
-          {pathname !== '/owner' && (
-            <Link to="/owner" className="btn btn-header-outline">
-              📋 پنل نوبت‌ها (مدیریت)
+          {!isAdminSection && (
+            <Link to="/admin/appointments" className="btn btn-header-outline">
+              📋 پنل مدیریت
             </Link>
           )}
         </nav>

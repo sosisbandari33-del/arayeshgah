@@ -18,9 +18,11 @@
 arayeshgah/
 ├── backend/
 │   ├── main.py              # نقطه ورود FastAPI، CORS، مدیریت خطاها و ثبت روترها
+│   ├── config.py            # خواندن متمرکز تنظیمات از .env
 │   ├── schemas.py           # مدل‌های ورودی Pydantic
-│   ├── routes/              # لایه‌ی دریافت درخواست HTTP (health, services, appointments)
-│   ├── services/            # لایه‌ی منطق کسب‌وکار مستقل از HTTP (catalog, appointments, errors)
+│   ├── migrations/          # migrationهای نسخه‌دار SQLite
+│   ├── routes/              # لایه‌ی دریافت درخواست HTTP (health, services, auth, appointments)
+│   ├── services/            # لایه‌ی منطق کسب‌وکار مستقل از HTTP (catalog, auth, appointments, errors)
 │   ├── database.py          # لایه‌ی دسترسی به SQLite و کوئری‌ها
 │   ├── pytest.ini           # تنظیمات ابزار تست pytest
 │   ├── tests/               # تست‌های خودکار HTTP برای همه‌ی اندپوینت‌ها (pytest + TestClient)
@@ -33,6 +35,7 @@ arayeshgah/
 │   │   │   └── client.js        # هسته‌ی مرکزی ارتباط با API بک‌اند (/api)
 │   │   ├── ui/                  # اجزای عمومی رابط کاربری (Button, Card, Input, Select, Modal, Alert)
 │   │   ├── features/
+│   │   │   ├── auth/            # فیچر ورود و پنل مدیریت (AdminLoginPage, RequireAdminAuth, AdminLayout)
 │   │   │   ├── services/        # فیچر خدمات (ServicesPage, ServiceCard, servicesApi, services.css)
 │   │   │   ├── booking/         # فیچر رزرو نوبت (BookingPage, BookingReceipt, bookingApi, booking.css)
 │   │   │   └── appointments/    # فیچر مدیریت نوبت‌ها (AppointmentsPage, CancelAppointmentModal, appointmentsApi, appointments.css)
@@ -79,9 +82,16 @@ cd arayeshgah
 
 ---
 
-### مرحله دوم: راه‌اندازی بک‌اند (Python FastAPI)
+### مرحله دوم: تنظیم فایل `.env` و راه‌اندازی بک‌اند (Python FastAPI)
 
-در ترمینال اول، دستورات زیر را برای ساخت محیط مجازی، نصب وابستگی‌ها و اجرای سرور اجرا کنید:
+ابتدا در ریشه‌ی پروژه یک کپی از فایل نمونه‌ی `.env.example` با نام `.env` بسازید و شماره موبایل، رمز عبور اولیه‌ی مدیر و کلید امضا را در آن تنظیم کنید:
+
+```powershell
+# در ویندوز (از ریشه پروژه)
+Copy-Item .env.example .env
+```
+
+سپس در ترمینال اول، دستورات زیر را برای ساخت محیط مجازی، نصب وابستگی‌ها و اجرای سرور اجرا کنید:
 
 #### در ویندوز (PowerShell / CMD):
 ```powershell

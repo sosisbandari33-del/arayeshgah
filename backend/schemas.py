@@ -7,3 +7,8 @@ class AppointmentCreate(BaseModel):
     service_id: int = Field(..., description="شناسه خدمت انتخابی")
     date: str = Field(..., description="تاریخ نوبت با فرمت YYYY-MM-DD")
     start_time: str = Field(..., description="ساعت نوبت با فرمت HH:MM")
+
+
+class AdminLoginRequest(BaseModel):
+    phone: str = Field(..., description="شماره موبایل مدیر")
+    password: str = Field(..., description="رمز عبور مدیر")

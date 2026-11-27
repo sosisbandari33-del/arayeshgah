@@ -6,6 +6,9 @@ import { fetchServices } from './features/services/servicesApi'
 import ServicesPage from './features/services/ServicesPage'
 import BookingPage from './features/booking/BookingPage'
 import AppointmentsPage from './features/appointments/AppointmentsPage'
+import AdminLoginPage from './features/auth/AdminLoginPage'
+import AdminLayout from './features/auth/AdminLayout'
+import RequireAdminAuth from './features/auth/RequireAdminAuth'
 import './styles/tokens.css'
 import './styles/layout.css'
 
@@ -77,7 +80,19 @@ function App() {
             />
           }
         />
-        <Route path="/owner" element={<AppointmentsPage />} />
+        <Route path="/admin/login" element={<AdminLoginPage />} />
+        <Route
+          path="/admin"
+          element={
+            <RequireAdminAuth>
+              <AdminLayout />
+            </RequireAdminAuth>
+          }
+        >
+          <Route index element={<Navigate to="appointments" replace />} />
+          <Route path="appointments" element={<AppointmentsPage />} />
+        </Route>
+        <Route path="/owner" element={<Navigate to="/admin/appointments" replace />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
 

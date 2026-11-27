@@ -1,5 +1,9 @@
-def test_list_appointments_success_empty_and_sorted_by_time(client, future_date):
-    empty_res = client.get("/api/appointments", params={"date": future_date})
+def test_list_appointments_success_empty_and_sorted_by_time(
+    client, admin_headers, future_date
+):
+    empty_res = client.get(
+        "/api/appointments", params={"date": future_date}, headers=admin_headers
+    )
     assert empty_res.status_code == 200
     assert empty_res.json() == []
 
@@ -25,24 +29,32 @@ def test_list_appointments_success_empty_and_sorted_by_time(client, future_date)
         },
     )
 
-    list_res = client.get("/api/appointments", params={"date": future_date})
+    list_res = client.get(
+        "/api/appointments", params={"date": future_date}, headers=admin_headers
+    )
     assert list_res.status_code == 200
     items = list_res.json()
     assert [item["start_time"] for item in items] == ["10:30", "15:00"]
 
 
-def test_list_appointments_error_missing_or_invalid_date_returns_422(client):
-    missing_res = client.get("/api/appointments")
+def test_list_appointments_error_missing_or_invalid_date_returns_422(
+    client, admin_headers
+):
+    missing_res = client.get("/api/appointments", headers=admin_headers)
     assert missing_res.status_code == 422
     assert missing_res.json()["detail"] == "ارسال پارامتر تاریخ الزامی است."
     assert missing_res.json()["errors"]["date"] == "ارسال پارامتر تاریخ الزامی است."
 
-    invalid_res = client.get("/api/appointments", params={"date": "2027-5-7"})
+    invalid_res = client.get(
+        "/api/appointments", params={"date": "2027-5-7"}, headers=admin_headers
+    )
     assert invalid_res.status_code == 422
     assert "date" in invalid_res.json()["errors"]
 
 
-def test_cancel_appointment_success_preserves_record_and_frees_slot(client, future_date):
+def test_cancel_appointment_success_preserves_record_and_frees_slot(
+    client, admin_headers, future_date
+):
     created = client.post(
         "/api/appointments",
         json={
@@ -54,14 +66,18 @@ def test_cancel_appointment_success_preserves_record_and_frees_slot(client, futu
         },
     ).json()["appointment"]
 
-    cancel_res = client.patch(f"/api/appointments/{created['id']}/cancel")
+    cancel_res = client.patch(
+        f"/api/appointments/{created['id']}/cancel", headers=admin_headers
+    )
     assert cancel_res.status_code == 200
     cancel_body = cancel_res.json()
     assert cancel_body["success"] is True
     assert cancel_body["appointment"]["status"] == "لغو شده"
 
     # قانون R4: رکورد حذف نشده و در لیست نوبت‌های روز باقی مانده است
-    day_items = client.get("/api/appointments", params={"date": future_date}).json()
+    day_items = client.get(
+        "/api/appointments", params={"date": future_date}, headers=admin_headers
+    ).json()
     assert len(day_items) == 1
     assert day_items[0]["status"] == "لغو شده"
 
@@ -83,22 +99,31 @@ def test_cancel_appointment_success_preserves_record_and_frees_slot(client, futu
         },
     )
     assert rebook_res.status_code == 200
-    assert len(client.get("/api/appointments", params={"date": future_date}).json()) == 2
+    assert (
+        len(
+            client.get(
+                "/api/appointments", params={"date": future_date}, headers=admin_headers
+            ).json()
+        )
+        == 2
+    )
 
     # لغو مجدد همان نوبت از قبل لغوشده بدون خطا برمی‌گردد
-    repeat_cancel = client.patch(f"/api/appointments/{created['id']}/cancel")
+    repeat_cancel = client.patch(
+        f"/api/appointments/{created['id']}/cancel", headers=admin_headers
+    )
     assert repeat_cancel.status_code == 200
     assert repeat_cancel.json()["success"] is True
 
 
-def test_cancel_appointment_error_nonexistent_id_returns_404(client):
-    response = client.patch("/api/appointments/99999/cancel")
+def test_cancel_appointment_error_nonexistent_id_returns_404(client, admin_headers):
+    response = client.patch("/api/appointments/99999/cancel", headers=admin_headers)
     assert response.status_code == 404
     assert response.json()["detail"] == "نوبت مورد نظر یافت نشد."
 
 
-def test_cancel_appointment_error_invalid_id_type_returns_422(client):
-    response = client.patch("/api/appointments/abc/cancel")
+def test_cancel_appointment_error_invalid_id_type_returns_422(client, admin_headers):
+    response = client.patch("/api/appointments/abc/cancel", headers=admin_headers)
     assert response.status_code == 422
     body = response.json()
     assert body["detail"] == "شناسه نوبت نامعتبر است."
