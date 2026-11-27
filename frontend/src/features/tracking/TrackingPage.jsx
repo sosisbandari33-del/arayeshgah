@@ -1,6 +1,15 @@
 import { useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import { Alert, Button, Card, Input, Modal } from '../../ui'
+import {
+  Alert,
+  Button,
+  Card,
+  EmptyState,
+  ErrorState,
+  Input,
+  LoadingState,
+  Modal,
+} from '../../ui'
 import {
   convertPersianToEnglishDigits,
   formatPrice,
@@ -17,7 +26,8 @@ function TrackingPage() {
   const [phone, setPhone] = useState(() => searchParams.get('phone') || '')
   const [trackingCode, setTrackingCode] = useState(() => searchParams.get('code') || '')
   const [fieldErrors, setFieldErrors] = useState({})
-  const [lookupError, setLookupError] = useState(null)
+  const [networkError, setNetworkError] = useState(null)
+  const [notFoundMsg, setNotFoundMsg] = useState(null)
   const [loading, setLoading] = useState(false)
 
   const [trackingResult, setTrackingResult] = useState(null)
@@ -54,9 +64,9 @@ function TrackingPage() {
     return { errors, cleanPhone, cleanCode }
   }
 
-  const handleLookup = (e) => {
-    e.preventDefault()
-    setLookupError(null)
+  const performLookup = () => {
+    setNetworkError(null)
+    setNotFoundMsg(null)
     setSuccessBanner(null)
 
     const { errors, cleanPhone, cleanCode } = validateInputs()
@@ -87,8 +97,17 @@ function TrackingPage() {
           setFieldErrors(err.fieldErrors)
           return
         }
-        setLookupError(err.message)
+        if (err.status === 404) {
+          setNotFoundMsg(err.message)
+          return
+        }
+        setNetworkError(err.message)
       })
+  }
+
+  const handleLookupSubmit = (e) => {
+    e.preventDefault()
+    performLookup()
   }
 
   const handleConfirmCancel = () => {
@@ -134,7 +153,7 @@ function TrackingPage() {
           </p>
         </div>
 
-        <form onSubmit={handleLookup} className="tracking-form" noValidate>
+        <form onSubmit={handleLookupSubmit} className="tracking-form" noValidate>
           <div className="tracking-form-row">
             <Input
               id="trackingPhone"
@@ -155,7 +174,7 @@ function TrackingPage() {
               label="کد پیگیری ۶ رقمی:"
               type="text"
               inputMode="numeric"
-              placeholder="مثال: 482915"
+              placeholder="کد ۶ رقمی رسید"
               value={trackingCode}
               onChange={(e) => {
                 setTrackingCode(e.target.value)
@@ -173,26 +192,49 @@ function TrackingPage() {
           </div>
         </form>
 
-        {lookupError && (
-          <Alert variant="error">
-            <span>⚠️ {lookupError}</span>
-          </Alert>
-        )}
-
         {successBanner && (
           <Alert variant="success">
             <span>✅ {successBanner}</span>
           </Alert>
         )}
 
-        {appt && (
+        {loading && (
+          <LoadingState variant="box" label="در حال جستجوی اطلاعات نوبت شما..." />
+        )}
+
+        {!loading && networkError && (
+          <ErrorState message={networkError} onRetry={performLookup} />
+        )}
+
+        {!loading && !networkError && notFoundMsg && (
+          <EmptyState
+            icon="🔍"
+            title="نوبتی با این مشخصات پیدا نشد"
+            description={notFoundMsg}
+          />
+        )}
+
+        {!loading && !networkError && !notFoundMsg && !appt && (
+          <EmptyState
+            icon="🎫"
+            title="هنوز نوبتی جستجو نشده است"
+            description="شماره موبایل و کد پیگیری ۶ رقمی خود را وارد کرده و دکمه‌ی «مشاهده وضعیت نوبت» را بزنید."
+          />
+        )}
+
+        {!loading && appt && (
           <div className="tracked-appt-box">
             <div className="tracked-appt-top">
-              <div>
+              <div style={{ minWidth: 0 }}>
                 <span className="tracked-code-badge">
                   کد پیگیری: {toPersianDigits(appt.tracking_code)}
                 </span>
-                <h3 className="tracked-customer-name">{appt.customer_name}</h3>
+                <h3
+                  className="tracked-customer-name text-clamp-2"
+                  title={appt.customer_name}
+                >
+                  {appt.customer_name}
+                </h3>
               </div>
               <span
                 className={`tracked-status-pill ${isCancelled ? 'cancelled' : 'active'}`}
@@ -204,7 +246,12 @@ function TrackingPage() {
             <div className="tracked-details-grid">
               <div className="tracked-detail-row">
                 <span>خدمت‌ها:</span>
-                <strong className="tracked-services-val">{appt.service_name}</strong>
+                <strong
+                  className="tracked-services-val text-clamp-2"
+                  title={appt.service_name}
+                >
+                  {appt.service_name}
+                </strong>
               </div>
               {appt.total_duration > 0 && (
                 <div className="tracked-detail-row">
@@ -246,7 +293,7 @@ function TrackingPage() {
 
               {canCancel ? (
                 <p className="cancel-policy-hint">
-                  امکان لغو نوبت تا {toPersianDigits(trackingResult.cancel_deadline_hours || 2)} ساعت پیش از زمان شروع نوبت فراهم است.
+                  امکان لغو نوبت تا {toPersianDigits(trackingResult.cancel_deadline_hours)} ساعت پیش از زمان شروع نوبت فراهم است.
                 </p>
               ) : (
                 <p className="cancel-disabled-reason" role="status">

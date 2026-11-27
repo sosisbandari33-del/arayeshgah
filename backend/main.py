@@ -9,6 +9,7 @@ from routes.auth import router as auth_router
 from routes.health import router as health_router
 from routes.schedule import router as schedule_router
 from routes.services import router as services_router
+from routes.settings import router as settings_router
 from services.auth import ensure_initial_admin
 from services.errors import (
     ConflictDomainError,
@@ -48,6 +49,9 @@ MISSING_FIELD_MESSAGES = {
     "is_active": "مشخص کردن وضعیت خدمت الزامی است.",
     "days": "ارسال برنامه‌ی هفتگی الزامی است.",
     "end_time": "وارد کردن ساعت پایان الزامی است.",
+    "salon_name": "وارد کردن نام آرایشگاه الزامی است.",
+    "cancel_deadline_hours": "وارد کردن مهلت لغو الزامی است.",
+    "current_password": "وارد کردن رمز عبور فعلی الزامی است.",
 }
 
 INVALID_FIELD_MESSAGES = {
@@ -68,6 +72,10 @@ INVALID_FIELD_MESSAGES = {
     "days": "ساختار برنامه‌ی هفتگی نامعتبر است.",
     "end_time": "ساعت پایان نامعتبر است.",
     "time_off_id": "شناسه تعطیلی یا مرخصی نامعتبر است.",
+    "salon_name": "نام آرایشگاه باید متنی معتبر باشد.",
+    "cancel_deadline_hours": "مهلت لغو نوبت باید یک عدد صحیح به ساعت باشد.",
+    "current_password": "رمز عبور فعلی نامعتبر است.",
+    "new_password": "رمز عبور جدید نامعتبر است.",
 }
 
 
@@ -156,4 +164,5 @@ app.include_router(health_router)
 app.include_router(services_router)
 app.include_router(auth_router)
 app.include_router(schedule_router)
+app.include_router(settings_router)
 app.include_router(appointments_router)

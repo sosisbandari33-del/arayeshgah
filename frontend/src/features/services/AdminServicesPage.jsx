@@ -1,5 +1,14 @@
 import { useState, useEffect } from 'react'
-import { Alert, Button, Card, Input, Modal } from '../../ui'
+import {
+  Alert,
+  Button,
+  Card,
+  EmptyState,
+  ErrorState,
+  Input,
+  LoadingState,
+  Modal,
+} from '../../ui'
 import { convertPersianToEnglishDigits, formatPrice } from '../../utils/persian'
 import {
   changeAdminServiceStatus,
@@ -289,29 +298,27 @@ function AdminServicesPage({ onServicesChanged }) {
           خدمات غیرفعال در صفحه‌ی اصلی و فرم رزرو مشتریان نمایش داده نمی‌شوند. خدمتی که نوبت ثبت‌شده دارد پاک نمی‌شود و فقط قابل غیرفعال‌سازی است.
         </p>
 
-        {loading && <p className="loading-slots">در حال بارگذاری لیست خدمات...</p>}
+        {loading && (
+          <LoadingState variant="table" count={4} label="در حال بارگذاری فهرست خدمات..." />
+        )}
 
-        {error && (
-          <Alert variant="error">
-            <p>❌ {error}</p>
-            <Button
-              variant="retry"
-              onClick={() => {
-                setLoading(true)
-                setError(null)
-                setRefreshKey((prev) => prev + 1)
-              }}
-            >
-              تلاش دوباره
-            </Button>
-          </Alert>
+        {!loading && error && (
+          <ErrorState
+            message={error}
+            onRetry={() => {
+              setLoading(true)
+              setError(null)
+              setRefreshKey((prev) => prev + 1)
+            }}
+          />
         )}
 
         {!loading && !error && services.length === 0 && (
-          <div className="empty-state">
-            <span className="empty-icon">✂️</span>
-            <p>هنوز هیچ خدمتی ثبت نشده است. از فرم بالا اولین خدمت را اضافه کنید.</p>
-          </div>
+          <EmptyState
+            icon="✂️"
+            title="هنوز هیچ خدمتی ثبت نشده است"
+            description="از فرم بالا اولین خدمت آرایشگاه را اضافه کنید."
+          />
         )}
 
         {!loading && !error && services.length > 0 && (
@@ -332,7 +339,11 @@ function AdminServicesPage({ onServicesChanged }) {
 
                   return (
                     <tr key={item.id} className={!item.is_active ? 'row-inactive' : ''}>
-                      <td className="service-name-cell">{item.name}</td>
+                      <td className="service-name-cell">
+                        <span className="text-clamp-2" title={item.name}>
+                          {item.name}
+                        </span>
+                      </td>
                       <td>{formatPrice(item.price)} تومان</td>
                       <td>{item.duration} دقیقه</td>
                       <td>

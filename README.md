@@ -21,8 +21,8 @@ arayeshgah/
 │   ├── config.py            # خواندن متمرکز تنظیمات از .env
 │   ├── schemas.py           # مدل‌های ورودی Pydantic
 │   ├── migrations/          # migrationهای نسخه‌دار SQLite
-│   ├── routes/              # لایه‌ی دریافت درخواست HTTP (health, services, auth, schedule, appointments)
-│   ├── services/            # لایه‌ی منطق کسب‌وکار مستقل از HTTP (catalog, auth, schedule, appointments, errors)
+│   ├── routes/              # لایه‌ی دریافت درخواست HTTP (health, services, auth, schedule, settings, appointments)
+│   ├── services/            # لایه‌ی منطق کسب‌وکار مستقل از HTTP (catalog, auth, schedule, settings, appointments, errors)
 │   ├── database.py          # لایه‌ی دسترسی به SQLite و کوئری‌ها
 │   ├── pytest.ini           # تنظیمات ابزار تست pytest
 │   ├── tests/               # تست‌های خودکار HTTP برای همه‌ی اندپوینت‌ها (pytest + TestClient)
@@ -33,11 +33,12 @@ arayeshgah/
 │   ├── src/
 │   │   ├── api/
 │   │   │   └── client.js        # هسته‌ی مرکزی ارتباط با API بک‌اند (/api)
-│   │   ├── ui/                  # اجزای عمومی رابط کاربری (Button, Card, Input, Select, Modal, Alert)
+│   │   ├── ui/                  # اجزای عمومی رابط کاربری و ۴ حالت لیست (Button, Card, Input, Modal, Alert, LoadingState, ErrorState, EmptyState)
 │   │   ├── features/
 │   │   │   ├── auth/            # فیچر ورود و پنل مدیریت (AdminLoginPage, RequireAdminAuth, AdminLayout)
 │   │   │   ├── services/        # فیچر خدمات مشتری و مدیر (ServicesPage, AdminServicesPage, ServiceCard, servicesApi)
 │   │   │   ├── schedule/        # فیچر ساعات کاری، تعطیلی‌ها و مرخصی‌ها (AdminSchedulePage, scheduleApi, schedule.css)
+│   │   │   ├── settings/        # فیچر صفحه‌ی تنظیمات کامل آرایشگاه (AdminSettingsPage, settingsApi, settings.css)
 │   │   │   ├── booking/         # فیچر ویزارد ۴ مرحله‌ای رزرو و خلاصه کد پیگیری (BookingPage, BookingReceipt, bookingApi)
 │   │   │   ├── tracking/        # فیچر پیگیری و لغو نوبت مشتری با کد ۶ رقمی (TrackingPage, trackingApi, tracking.css)
 │   │   │   └── appointments/    # فیچر مدیریت نوبت‌ها (AppointmentsPage, CancelAppointmentModal, appointmentsApi)
@@ -61,7 +62,8 @@ arayeshgah/
 │   │   ├── working-hours.md # FRD ساعات کاری، تعطیلی‌ها و مرخصی‌ها (شامل R6 و R7)
 │   │   ├── booking.md       # FRD رزرو ۴ مرحله‌ای نوبت بر اساس مدت خدمات (شامل R3، R5 تا R8 و R10)
 │   │   ├── appointment-tracking.md # FRD پیگیری و لغو نوبت مشتری با کد ۶ رقمی (شامل R9)
-│   │   └── appointments-management.md # FRD مدیریت نوبت‌ها (شامل R4)
+│   │   ├── appointments-management.md # FRD مدیریت نوبت‌ها (شامل R4)
+│   │   └── settings.md      # FRD صفحه‌ی تنظیمات کامل آرایشگاه و حساب مدیر
 │   └── architecture/
 │       └── overview.md      # نمای کلی معماری و ارتباط بخش‌های سیستم
 ├── AGENTS.md                # پروتکل ۵ فازی کار ایجنت

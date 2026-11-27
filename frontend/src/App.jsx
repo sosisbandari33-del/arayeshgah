@@ -3,9 +3,11 @@ import { Routes, Route, Navigate } from 'react-router-dom'
 import Header from './components/Header'
 import Footer from './components/Footer'
 import { fetchServices } from './features/services/servicesApi'
+import { fetchPublicSettings } from './features/settings/settingsApi'
 import ServicesPage from './features/services/ServicesPage'
 import AdminServicesPage from './features/services/AdminServicesPage'
 import AdminSchedulePage from './features/schedule/AdminSchedulePage'
+import AdminSettingsPage from './features/settings/AdminSettingsPage'
 import BookingPage from './features/booking/BookingPage'
 import TrackingPage from './features/tracking/TrackingPage'
 import AppointmentsPage from './features/appointments/AppointmentsPage'
@@ -20,6 +22,36 @@ function App() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [servicesRefreshKey, setServicesRefreshKey] = useState(0)
+
+  const [salonName, setSalonName] = useState('')
+
+  useEffect(() => {
+    let active = true
+    const controller = new AbortController()
+
+    fetchPublicSettings(controller.signal)
+      .then((data) => {
+        if (!active) return
+        if (data?.salon_name) {
+          setSalonName(data.salon_name)
+        }
+      })
+      .catch((err) => {
+        if (!active || err.name === 'AbortError') return
+        console.warn('خطا در خواندن تنظیمات عمومی:', err.message)
+      })
+
+    return () => {
+      active = false
+      controller.abort()
+    }
+  }, [servicesRefreshKey])
+
+  useEffect(() => {
+    if (salonName) {
+      document.title = `سامانه نوبت‌دهی ${salonName}`
+    }
+  }, [salonName])
 
   useEffect(() => {
     let active = true
@@ -56,9 +88,15 @@ function App() {
     }
   }
 
+  const handlePublicSettingsChanged = (updatedSettings) => {
+    if (updatedSettings?.salon_name) {
+      setSalonName(updatedSettings.salon_name)
+    }
+  }
+
   return (
     <div className="app-container">
-      <Header onEnsureServices={handleEnsureServices} />
+      <Header salonName={salonName || 'آرایشگاه'} onEnsureServices={handleEnsureServices} />
 
       <Routes>
         <Route
@@ -100,12 +138,21 @@ function App() {
             element={<AdminServicesPage onServicesChanged={handleRetryServices} />}
           />
           <Route path="schedule" element={<AdminSchedulePage />} />
+          <Route
+            path="settings"
+            element={
+              <AdminSettingsPage
+                onServicesChanged={handleRetryServices}
+                onPublicSettingsChanged={handlePublicSettingsChanged}
+              />
+            }
+          />
         </Route>
         <Route path="/owner" element={<Navigate to="/admin/appointments" replace />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
 
-      <Footer />
+      <Footer salonName={salonName} />
     </div>
   )
 }

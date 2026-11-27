@@ -219,6 +219,11 @@
 .customer-name {
   font-weight: 700;
   color: var(--text-heading);
+  max-width: 170px;
+}
+
+.appointment-service-cell {
+  max-width: 240px;
 }
 
 .phone-link {

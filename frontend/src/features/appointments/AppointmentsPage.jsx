@@ -1,7 +1,15 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Alert, Button, Card } from '../../ui'
+import {
+  Alert,
+  Button,
+  Card,
+  EmptyState,
+  ErrorState,
+  LoadingState,
+} from '../../ui'
 import { getLocalDateString, shiftDate, isValidDateString } from '../../utils/date'
+import { toPersianDigits } from '../../utils/persian'
 import { fetchAppointments, cancelAppointment } from './appointmentsApi'
 import CancelAppointmentModal from './CancelAppointmentModal'
 import './appointments.css'
@@ -158,24 +166,26 @@ function AppointmentsPage() {
       </div>
 
       <Card className="appointments-card">
-        <h3>برنامه نوبت‌های تاریخ {selectedDate}</h3>
+        <h3>برنامه نوبت‌های تاریخ {toPersianDigits(selectedDate)}</h3>
 
-        {loading && <p className="loading-text">در حال بارگذاری لیست نوبت‌ها...</p>}
+        {loading && (
+          <LoadingState variant="table" count={4} label="در حال بارگذاری لیست نوبت‌ها..." />
+        )}
 
-        {error && (
-          <Alert variant="error">
-            <p>❌ {error}</p>
-            <Button variant="retry" onClick={handleRetry}>
-              تلاش دوباره
-            </Button>
-          </Alert>
+        {!loading && error && (
+          <ErrorState message={error} onRetry={handleRetry} />
         )}
 
         {!loading && !error && appointments.length === 0 && (
-          <div className="empty-state">
-            <span className="empty-icon">☕</span>
-            <p>برای این تاریخ هیچ نوبتی ثبت نشده است.</p>
-          </div>
+          <EmptyState
+            icon="☕"
+            title={
+              selectedDate === todayStr
+                ? 'امروز نوبتی ندارید'
+                : 'برای این تاریخ نوبتی ثبت نشده است'
+            }
+            description="نوبت‌های ثبت‌شده توسط مشتریان به‌ترتیب ساعت شروع در این جدول قرار می‌گیرند."
+          />
         )}
 
         {!loading && !error && appointments.length > 0 && (
@@ -194,24 +204,32 @@ function AppointmentsPage() {
               <tbody>
                 {appointments.map((item) => {
                   const isCancelled = item.status === 'لغو شده'
+                  const svcLabel = item.total_duration
+                    ? `${item.service_name} (${toPersianDigits(item.total_duration)} دقیقه)`
+                    : item.service_name
 
                   return (
                     <tr key={item.id} className={isCancelled ? 'row-cancelled' : ''}>
                       <td>
                         <span className="time-tag">
-                          ⏱ {item.start_time}
-                          {item.end_time ? ` تا ${item.end_time}` : ''}
+                          ⏱ {toPersianDigits(item.start_time)}
+                          {item.end_time ? ` تا ${toPersianDigits(item.end_time)}` : ''}
                         </span>
                       </td>
-                      <td className="customer-name">{item.customer_name}</td>
-                      <td>
-                        <a href={`tel:${item.customer_phone}`} className="phone-link">
-                          {item.customer_phone}
-                        </a>
+                      <td className="customer-name">
+                        <span className="text-clamp-1" title={item.customer_name}>
+                          {item.customer_name}
+                        </span>
                       </td>
                       <td>
-                        {item.service_name}
-                        {item.total_duration ? ` (${item.total_duration} دقیقه)` : ''}
+                        <a href={`tel:${item.customer_phone}`} className="phone-link">
+                          {toPersianDigits(item.customer_phone)}
+                        </a>
+                      </td>
+                      <td className="appointment-service-cell">
+                        <span className="text-clamp-2" title={svcLabel}>
+                          {svcLabel}
+                        </span>
                       </td>
                       <td>
                         <span className={`status-tag ${isCancelled ? 'status-cancelled' : 'status-active'}`}>

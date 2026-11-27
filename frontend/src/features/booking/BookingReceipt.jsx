@@ -32,7 +32,12 @@ function BookingReceipt({ appointment, onNewBooking, onGoHome }) {
         <div className="receipt-box">
           <div className="receipt-item">
             <span className="receipt-label">خدمت‌های انتخابی:</span>
-            <span className="receipt-value receipt-services-text">{appointment.service_name}</span>
+            <span
+              className="receipt-value receipt-services-text text-clamp-2"
+              title={appointment.service_name}
+            >
+              {appointment.service_name}
+            </span>
           </div>
           {appointment.total_duration > 0 && (
             <div className="receipt-item">

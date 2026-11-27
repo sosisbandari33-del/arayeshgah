@@ -1,10 +1,11 @@
+import { useState } from 'react'
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
 import { clearAdminSession, getStoredAdminPhone } from './authStorage'
 import './auth.css'
 
 function AdminLayout() {
   const navigate = useNavigate()
-  const adminPhone = getStoredAdminPhone()
+  const [adminPhone, setAdminPhone] = useState(() => getStoredAdminPhone())
 
   const handleLogout = () => {
     clearAdminSession()
@@ -35,6 +36,12 @@ function AdminLayout() {
             >
               🕒 ساعات کاری و مرخصی
             </NavLink>
+            <NavLink
+              to="/admin/settings"
+              className={({ isActive }) => `admin-tab-link ${isActive ? 'active' : ''}`.trim()}
+            >
+              ⚙️ تنظیمات
+            </NavLink>
           </nav>
         </div>
 
@@ -46,7 +53,7 @@ function AdminLayout() {
         </div>
       </div>
 
-      <Outlet />
+      <Outlet context={{ onAdminPhoneUpdated: setAdminPhone }} />
     </div>
   )
 }

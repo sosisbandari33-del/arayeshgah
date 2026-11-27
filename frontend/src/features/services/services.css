@@ -58,6 +58,14 @@
   background-color: var(--primary-hover);
 }
 
+.services-state-card {
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-card);
+  padding: 1.5rem;
+  box-shadow: var(--shadow-card);
+}
+
 /* کارت‌های خدمات در صفحه‌ی اصلی */
 .services-grid {
   display: grid;

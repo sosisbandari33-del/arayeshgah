@@ -1,6 +1,14 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import { Alert, Button, Card, Input } from '../../ui'
+import {
+  Alert,
+  Button,
+  Card,
+  EmptyState,
+  ErrorState,
+  Input,
+  LoadingState,
+} from '../../ui'
 import { getLocalDateString, isValidDateString } from '../../utils/date'
 import { normalizePhone, formatPrice, toPersianDigits } from '../../utils/persian'
 import { fetchSlots, createAppointment } from './bookingApi'
@@ -325,7 +333,10 @@ function BookingPage({ services, servicesLoading, servicesError, onRetryServices
             {activeSelectedServices.length === 0 ? (
               <span className="live-selection-empty">هنوز خدمتی انتخاب نشده است</span>
             ) : (
-              <span className="live-selection-services">
+              <span
+                className="live-selection-services text-clamp-2"
+                title={activeSelectedServices.map((s) => s.name).join(' + ')}
+              >
                 {activeSelectedServices.map((s) => s.name).join(' + ')}
               </span>
             )}
@@ -358,21 +369,15 @@ function BookingPage({ services, servicesLoading, servicesError, onRetryServices
               <h3 className="wizard-panel-title">قدم ۱: خدمت یا خدمت‌های مورد نظر را انتخاب کنید</h3>
 
               {servicesLoading ? (
-                <p className="loading-slots">در حال بارگذاری لیست خدمات...</p>
+                <LoadingState variant="cards" count={2} label="در حال بارگذاری لیست خدمات..." />
+              ) : servicesError ? (
+                <ErrorState message={servicesError} onRetry={onRetryServices} />
               ) : services.length === 0 ? (
-                <Alert variant="box-error">
-                  <p className="slot-error-text">
-                    ⚠️{' '}
-                    {servicesError
-                      ? `دریافت لیست خدمات ممکن نیست (${servicesError}).`
-                      : 'در حال حاضر هیچ خدمت فعالی برای رزرو وجود ندارد.'}
-                  </p>
-                  {onRetryServices && (
-                    <Button variant="retry-small" onClick={onRetryServices}>
-                      🔄 تلاش دوباره برای دریافت خدمات
-                    </Button>
-                  )}
-                </Alert>
+                <EmptyState
+                  icon="✂️"
+                  title="در حال حاضر هیچ خدمت فعالی برای رزرو وجود ندارد"
+                  description="لطفاً کمی بعد دوباره مراجعه کنید."
+                />
               ) : (
                 <div className="service-multi-grid" role="group" aria-label="انتخاب خدمات">
                   {services.map((service) => {
@@ -388,7 +393,9 @@ function BookingPage({ services, servicesLoading, servicesError, onRetryServices
                           onChange={() => toggleServiceSelection(service.id)}
                         />
                         <div className="service-choice-content">
-                          <span className="service-choice-name">{service.name}</span>
+                          <span className="service-choice-name text-clamp-2" title={service.name}>
+                            {service.name}
+                          </span>
                           <span className="service-choice-meta">
                             ⏱ {toPersianDigits(service.duration)} دقیقه |{' '}
                             <strong>{formatPrice(service.price)} تومان</strong>
@@ -439,26 +446,31 @@ function BookingPage({ services, servicesLoading, servicesError, onRetryServices
                 </label>
 
                 {!selectedDate ? (
-                  <p className="field-hint">لطفاً تاریخ نوبت را انتخاب کنید.</p>
+                  <EmptyState
+                    icon="📅"
+                    title="تاریخی انتخاب نشده است"
+                    description="لطفاً از تقویم بالا روز مورد نظر خود را انتخاب کنید."
+                  />
                 ) : loadingSlots ? (
-                  <p className="loading-slots">
-                    در حال بررسی زمان‌های آزاد برای {toPersianDigits(totalDuration)} دقیقه خدمت...
-                  </p>
+                  <LoadingState
+                    variant="slots"
+                    count={8}
+                    label={`در حال بررسی زمان‌های خالی برای ${toPersianDigits(totalDuration)} دقیقه خدمت...`}
+                  />
                 ) : slotError ? (
-                  <Alert variant="box-error">
-                    <p className="slot-error-text">⚠️ {slotError}</p>
-                    <Button variant="retry-small" onClick={handleRetrySlots}>
-                      🔄 تلاش دوباره
-                    </Button>
-                  </Alert>
+                  <ErrorState message={slotError} onRetry={handleRetrySlots} />
                 ) : isClosedDay ? (
-                  <div className="closed-day-box">
-                    🚫 {closureReason || 'این روز تعطیل است و نوبتی ثبت نمی‌شود.'}
-                  </div>
+                  <EmptyState
+                    icon="🚫"
+                    title="آرایشگاه در این روز تعطیل است"
+                    description={closureReason || 'لطفاً روز دیگری را برای رزرو انتخاب کنید.'}
+                  />
                 ) : slots.length === 0 ? (
-                  <div className="empty-slots-box">
-                    ⏳ در این تاریخ زمان خالیِ پیوسته به اندازه‌ی {toPersianDigits(totalDuration)} دقیقه وجود ندارد؛ لطفاً روز دیگری را انتخاب کنید.
-                  </div>
+                  <EmptyState
+                    icon="⏳"
+                    title="در این روز زمان خالیِ متناسب وجود ندارد"
+                    description={`هیچ بازه‌ی پیوسته‌ای به اندازه‌ی ${toPersianDigits(totalDuration)} دقیقه خالی نیست؛ لطفاً روز دیگری را انتخاب کنید.`}
+                  />
                 ) : (
                   <div className="slots-grid">
                     {slots.map((slot) => {
