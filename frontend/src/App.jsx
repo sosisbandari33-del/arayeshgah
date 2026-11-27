@@ -4,6 +4,7 @@ import Header from './components/Header'
 import Footer from './components/Footer'
 import { fetchServices } from './features/services/servicesApi'
 import ServicesPage from './features/services/ServicesPage'
+import AdminServicesPage from './features/services/AdminServicesPage'
 import BookingPage from './features/booking/BookingPage'
 import AppointmentsPage from './features/appointments/AppointmentsPage'
 import AdminLoginPage from './features/auth/AdminLoginPage'
@@ -91,6 +92,10 @@ function App() {
         >
           <Route index element={<Navigate to="appointments" replace />} />
           <Route path="appointments" element={<AppointmentsPage />} />
+          <Route
+            path="services"
+            element={<AdminServicesPage onServicesChanged={handleRetryServices} />}
+          />
         </Route>
         <Route path="/owner" element={<Navigate to="/admin/appointments" replace />} />
         <Route path="*" element={<Navigate to="/" replace />} />

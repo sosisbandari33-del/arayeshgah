@@ -23,6 +23,12 @@ function AdminLayout() {
             >
               📋 مدیریت نوبت‌ها
             </NavLink>
+            <NavLink
+              to="/admin/services"
+              className={({ isActive }) => `admin-tab-link ${isActive ? 'active' : ''}`.trim()}
+            >
+              ✂️ مدیریت خدمات
+            </NavLink>
           </nav>
         </div>
 

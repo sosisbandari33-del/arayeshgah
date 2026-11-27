@@ -114,9 +114,9 @@ def book_appointment_logic(
     elif not PHONE_PATTERN.fullmatch(clean_phone):
         field_errors["customer_phone"] = "شماره موبایل باید ۱۱ رقم بوده و با ۰۹ شروع شود."
 
-    # ۳. اعتبارسنجی خدمت انتخابی
+    # ۳. اعتبارسنجی خدمت انتخابی (وجود و فعال بودن)
     service = get_service_by_id(service_id)
-    if not service:
+    if not service or not service.get("is_active", True):
         field_errors["service_id"] = "خدمت انتخابی معتبر نیست."
 
     # ۴. اعتبارسنجی تاریخ

@@ -14,6 +14,7 @@ from services.errors import (
     DomainError,
     FieldValidationError,
     NotFoundDomainError,
+    ResourceConflictDomainError,
     UnauthorizedDomainError,
     ValidationDomainError,
 )
@@ -38,6 +39,10 @@ MISSING_FIELD_MESSAGES = {
     "appointment_id": "شناسه نوبت الزامی است.",
     "phone": "وارد کردن شماره موبایل الزامی است.",
     "password": "وارد کردن رمز عبور الزامی است.",
+    "name": "نام خدمت نمی‌تواند خالی باشد.",
+    "price": "وارد کردن قیمت خدمت الزامی است.",
+    "duration": "وارد کردن مدت خدمت الزامی است.",
+    "is_active": "مشخص کردن وضعیت خدمت الزامی است.",
 }
 
 INVALID_FIELD_MESSAGES = {
@@ -49,6 +54,10 @@ INVALID_FIELD_MESSAGES = {
     "appointment_id": "شناسه نوبت نامعتبر است.",
     "phone": "شماره موبایل باید ۱۱ رقم بوده و با ۰۹ شروع شود.",
     "password": "رمز عبور واردشده نامعتبر است.",
+    "name": "نام خدمت باید بین ۲ تا ۸۰ کاراکتر باشد.",
+    "price": "قیمت خدمت باید یک عدد صحیح معتبر باشد.",
+    "duration": "مدت خدمت باید یک عدد صحیح به دقیقه باشد.",
+    "is_active": "وضعیت فعال بودن خدمت نامعتبر است.",
 }
 
 
@@ -68,6 +77,8 @@ async def domain_exception_handler(request: Request, exc: DomainError):
         )
     if isinstance(exc, NotFoundDomainError):
         return JSONResponse(status_code=404, content={"detail": exc.message})
+    if isinstance(exc, ResourceConflictDomainError):
+        return JSONResponse(status_code=409, content={"detail": exc.message})
     if isinstance(exc, (ValidationDomainError, ConflictDomainError)):
         return JSONResponse(status_code=400, content={"detail": exc.message})
     return JSONResponse(status_code=400, content={"detail": exc.message})

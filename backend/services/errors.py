@@ -28,5 +28,9 @@ class ConflictDomainError(DomainError):
     """خطای تداخل بازه‌ی زمانی یا رزرو همزمان"""
 
 
+class ResourceConflictDomainError(DomainError):
+    """خطای تضاد وضعیت منبع، مانند تلاش برای حذف خدمتی که نوبت دارد (HTTP 409)"""
+
+
 class NotFoundDomainError(DomainError):
     """خطای یافت نشدن موجودیت (خدمت یا نوبت)"""

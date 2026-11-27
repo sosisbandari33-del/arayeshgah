@@ -12,3 +12,13 @@ class AppointmentCreate(BaseModel):
 class AdminLoginRequest(BaseModel):
     phone: str = Field(..., description="شماره موبایل مدیر")
     password: str = Field(..., description="رمز عبور مدیر")
+
+
+class ServiceUpsertRequest(BaseModel):
+    name: str = Field(..., description="نام خدمت")
+    price: int = Field(..., description="قیمت خدمت به تومان")
+    duration: int = Field(..., description="مدت زمان خدمت به دقیقه")
+
+
+class ServiceStatusRequest(BaseModel):
+    is_active: bool = Field(..., description="وضعیت فعال یا غیرفعال بودن خدمت")

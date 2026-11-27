@@ -43,7 +43,13 @@ function ServicesPage({ services, loading, error, onRetryServices }) {
         </Card>
       )}
 
-      {!loading && !error && (
+      {!loading && !error && services.length === 0 && (
+        <Card className="status-box">
+          <p>در حال حاضر هیچ خدمت فعالی برای رزرو ثبت نشده است.</p>
+        </Card>
+      )}
+
+      {!loading && !error && services.length > 0 && (
         <div className="services-grid">
           {services.map((service) => (
             <ServiceCard
